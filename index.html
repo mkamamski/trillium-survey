@@ -10,7 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Karla:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet">
+<!-- crossorigin so these come back as real CORS responses rather than opaque
+     ones; the service worker can only cache what it can inspect -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Karla:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet" crossorigin="anonymous">
 
 <style>
 /* Palette taken from the Warm Earth Retreat reference: marigold, terracotta,
@@ -464,7 +466,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 
 <noscript><div class="wrap" style="padding:24px 20px"><p>This survey needs JavaScript to record grades.</p></div></noscript>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════

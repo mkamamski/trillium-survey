@@ -8,7 +8,15 @@
  *
  * Supabase is never intercepted. Survey data must never come from a cache. */
 
-const VERSION = "trillium-v1";
+const VERSION = "trillium-v2";
+
+/* The Supabase client and the font CSS are pulled in at install time rather
+   than left to be picked up opportunistically. cache.add() fetches them in
+   CORS mode, which yields a real inspectable response — the page's own tags
+   carry crossorigin="anonymous" for the same reason. Without the client in
+   here the shell loads offline and then cannot talk to Postgres at all. */
+const FONT_CSS = "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Karla:ital,wght@0,400..800;1,400..600&display=swap";
+const SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js";
 
 const SHELL = [
   "./",
@@ -17,7 +25,9 @@ const SHELL = [
   "./checkpoints.json",
   "./manifest.webmanifest",
   "./icon.svg",
-  "./icon-192.png"
+  "./icon-192.png",
+  SUPABASE_JS,
+  FONT_CSS
 ];
 
 /* Fonts and the Supabase client. Without these cached the app loads offline
@@ -43,6 +53,9 @@ self.addEventListener("activate", e => {
 });
 
 function put(req, res) {
+  /* res.ok is false for opaque (no-cors) responses, so anything fetched
+     without CORS never lands here — that is why the tags and the shell list
+     both request CORS explicitly. */
   if (res && res.ok) {
     const copy = res.clone();
     caches.open(VERSION).then(c => c.put(req, copy)).catch(() => {});
