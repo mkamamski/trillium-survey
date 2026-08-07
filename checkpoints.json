@@ -6,31 +6,31 @@
       "id": "sound",
       "label": "Sound",
       "severity": 1,
-      "color": "#6FAE7E"
+      "color": "#4F7C4A"
     },
     {
       "id": "serviceable",
       "label": "Serviceable",
       "severity": 2,
-      "color": "#D2B24C"
+      "color": "#D9A227"
     },
     {
       "id": "repair",
       "label": "Repair",
       "severity": 3,
-      "color": "#D4813F"
+      "color": "#C2652A"
     },
     {
       "id": "failed",
       "label": "Failed",
       "severity": 4,
-      "color": "#CE4F44"
+      "color": "#8C2140"
     },
     {
       "id": "na",
       "label": "N/A",
       "severity": 0,
-      "color": "#5C6C77"
+      "color": "#A2968A"
     }
   ],
   "priorities": [
