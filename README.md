@@ -98,6 +98,46 @@ RLS denying everything to `anon`, a subscription delivers nothing. Realtime and
 the passphrase gate are mutually exclusive here; the gate was worth more. At two
 people and a 5s poll the difference isn't perceptible.
 
+## In the field
+
+The real use is one-handed, outdoors, in sunlight, over 84 checkpoints. That
+drove most of the interface decisions:
+
+- **Next ungraded**, in a bar fixed to the bottom of the screen where a thumb
+  actually is. Skips what's already graded, opens and scrolls to the target,
+  flashes it, wraps around at the end, and respects the active filter — press it
+  in "Critical only" and you stay on critical items.
+- **Resume banner** offers the checkpoint you last touched instead of starting
+  you at the top every time.
+- **Notes grow with the text.** Findings run long and a one-line input hides the
+  end of them.
+- **Unsaved count.** Writes that fail are tracked apart from writes merely in
+  flight, so the badge says `2 unsaved` rather than a vague "Retrying", and
+  closing the tab with outstanding work warns you.
+- **Screen wake lock** while the survey is open, so the phone stops sleeping
+  every thirty seconds. Requested again on first tap, since some browsers only
+  grant it off a user gesture, and it fails silently where unsupported.
+
+### Installing it
+
+It's a PWA — "Add to Home Screen" gives it an icon and a full-screen window with
+no browser chrome. The service worker caches the shell, the fonts and the
+Supabase client, so **the app opens with no signal at all**; writes then queue
+and retry until they land.
+
+Two rules the service worker follows, both deliberate:
+
+- **Navigations are always network-first.** A worker that serves stale HTML
+  forever cannot be fixed by deploying, so the cache is only ever a fallback for
+  when there is genuinely no network.
+- **Supabase is never intercepted.** Grades must be live or fail loudly. A
+  cached survey response would be worse than an error.
+
+Note that cross-origin `<script>` and `<link rel=stylesheet>` need
+`crossorigin="anonymous"` to be cacheable at all — without it they come back
+opaque and a service worker cannot store them. That is why those two tags carry
+it, and why the Supabase client is also precached by URL at install.
+
 ## Photos
 
 Stored as `bytea` in Postgres, not Supabase Storage. Storage bucket policies
