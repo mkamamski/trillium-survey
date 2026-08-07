@@ -1,0 +1,1082 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E141A">
+<title>Trillium 1300 — Condition Survey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter+Tight:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --steel:#0E141A;
+  --steel-2:#161E26;
+  --steel-3:#1D2831;
+  --line:#2A3742;
+  --line-soft:rgba(122,145,161,.16);
+  --paper:#E2E7E9;
+  --paper-2:#B9C4CA;
+  --dim:#7C8D98;
+  --signal:#49A6B8;
+
+  --sound:#6FAE7E;
+  --serviceable:#D2B24C;
+  --repair:#D4813F;
+  --failed:#CE4F44;
+  --na:#5C6C77;
+
+  --fs-1:clamp(2.3rem,6.5vw,4.4rem);
+  --fs-2:clamp(1.25rem,2.6vw,1.75rem);
+  --maxw:1060px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--steel);color:var(--paper);
+  font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+h1,h2,h3,h4{font-family:'Bricolage Grotesque','Inter Tight',system-ui,sans-serif;font-weight:800;line-height:1;margin:0;letter-spacing:-.02em}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:3px}
+
+/* ─────────── LOCK SCREEN ─────────── */
+.lock{position:fixed;inset:0;z-index:200;background:var(--steel);display:flex;align-items:center;justify-content:center;padding:24px}
+.lock[hidden]{display:none}
+.lockCard{width:100%;max-width:360px}
+.lockCard .eyebrow{margin-bottom:6px}
+.lockCard h1{font-size:clamp(1.9rem,7vw,2.6rem);text-transform:uppercase;line-height:.95}
+.lockCard h1 span{display:block;color:var(--dim)}
+.lockCard p{color:var(--paper-2);font-size:.92rem;margin:14px 0 22px}
+.lockField{display:flex;gap:8px}
+.lockField input{flex:1 1 auto;min-width:0;background:var(--steel-2);border:1px solid var(--line);color:var(--paper);border-radius:3px;padding:13px 14px;font:inherit;font-size:1rem}
+.lockField input:focus{border-color:var(--signal);outline:none}
+.lockRow{display:flex;align-items:center;gap:8px;margin-top:14px;color:var(--dim);font-size:.84rem}
+.lockRow input{accent-color:var(--signal);width:16px;height:16px}
+.lockMsg{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--failed);margin-top:14px;min-height:1.2em}
+.lockMsg.ok{color:var(--signal)}
+
+.app[hidden]{display:none}
+
+/* ─────────── HERO ─────────── */
+.hero{padding:44px 0 34px;border-bottom:1px solid var(--line)}
+.heroGrid{display:grid;grid-template-columns:1fr 1.05fr;gap:38px;align-items:center}
+@media(max-width:840px){.heroGrid{grid-template-columns:1fr;gap:28px}}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--signal)}
+.hero h1{font-size:var(--fs-1);margin:.16em 0 0;text-transform:uppercase}
+.hero h1 span{display:block;color:var(--dim)}
+.lede{max-width:40ch;color:var(--paper-2);margin:16px 0 0;font-size:1rem}
+.tallies{display:flex;flex-wrap:wrap;gap:7px;margin-top:22px}
+.tally{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:100px;padding:5px 12px 5px 9px;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--paper-2)}
+.tally i{width:9px;height:9px;border-radius:50%;display:block}
+.tally b{color:var(--paper);font-weight:700}
+
+/* ─────────── HULL MAP (signature) ─────────── */
+.mapCard{background:var(--steel-2);border:1px solid var(--line);border-radius:4px;padding:18px 18px 14px}
+.mapCap{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.hull{width:100%;display:block}
+.hull .zone{color:#33424E;cursor:pointer;transition:fill .35s ease,opacity .3s ease}
+.hull .zone:hover{opacity:.78}
+.hull .out{fill:none;stroke:#3D4E5A;stroke-width:2;stroke-linejoin:round}
+.hull .thin{fill:none;stroke:#3D4E5A;stroke-width:1.6;stroke-linecap:round}
+.hull .lbl{font-family:'JetBrains Mono',monospace;font-size:8px;fill:#6E828E;letter-spacing:.09em}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.zchip{background:none;border:1px solid var(--line);color:var(--paper-2);border-radius:3px;padding:6px 10px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:7px;transition:border-color .2s}
+.zchip:hover{border-color:var(--signal)}
+.zchip i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block;transition:background .35s}
+
+/* ─────────── STICKY CONTROL RAIL ─────────── */
+.rail{position:sticky;top:0;z-index:70;background:rgba(14,20,26,.94);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+.railIn{max-width:var(--maxw);margin:0 auto;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.filters{display:flex;gap:5px;flex-wrap:wrap}
+.fbtn{background:none;border:1px solid var(--line);color:var(--dim);border-radius:3px;padding:6px 11px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;transition:.18s}
+.fbtn:hover{color:var(--paper);border-color:#3D4E5A}
+.fbtn.on{background:var(--signal);border-color:var(--signal);color:#081316;font-weight:700}
+.railSpace{flex:1 1 auto;min-width:4px}
+.prog{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.progBar{width:90px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progFill{height:100%;background:var(--signal);width:0;transition:width .4s ease}
+.progTxt{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--paper-2);white-space:nowrap}
+
+/* The rail is sticky, so every row it wraps to is a row stolen from the survey
+   for the whole scroll. On a phone: shrink the filters until all four fit one
+   line, and put name + sync + progress on the second. */
+@media(max-width:560px){
+  .railIn{padding:8px 20px;gap:8px}
+  .fbtn{padding:6px 7px;font-size:.58rem;letter-spacing:.04em}
+  .filters{gap:4px;flex:1 1 100%;flex-wrap:nowrap}
+  .railSpace{display:none}
+  .who{flex:1 1 auto;width:auto}
+  .progBar{display:none}
+  .prog{margin-left:auto}
+  .progTxt{font-size:.62rem}
+  .sync span{display:none}
+}
+
+/* ─────────── SCOPE PANEL ─────────── */
+.scope{background:var(--steel-2);border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:3px;padding:20px 22px;margin:30px 0 6px}
+.scope[hidden]{display:none}
+.scope h3{font-size:1.05rem;text-transform:uppercase;letter-spacing:0}
+.scopeSub{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.verdict{margin:16px 0 0;font-size:.97rem;color:var(--paper-2)}
+.verdict b{color:var(--paper)}
+.flagList{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:7px}
+.flagList li{display:flex;gap:10px;align-items:baseline;font-size:.9rem;padding-bottom:7px;border-bottom:1px solid var(--line-soft)}
+.flagList li:last-child{border-bottom:0;padding-bottom:0}
+.flagDot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;margin-top:6px}
+.flagWhere{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--dim);letter-spacing:.05em;margin-left:auto;flex:0 0 auto;padding-left:12px}
+.costRow{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.costRow b{font-family:'Bricolage Grotesque',sans-serif;font-size:1.5rem;color:var(--paper);letter-spacing:-.02em}
+
+/* ─────────── SECTIONS ─────────── */
+main{padding:6px 0 20px}
+.sec{border-top:1px solid var(--line);padding:26px 0 4px}
+.secHead{display:flex;gap:16px;align-items:baseline;cursor:pointer;user-select:none}
+.secNum{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--signal);letter-spacing:.1em;flex:0 0 auto;padding-top:5px}
+.secTitleWrap{flex:1 1 auto;min-width:0}
+.sec h2{font-size:var(--fs-2);text-transform:uppercase}
+.secBar{display:flex;gap:2px;margin-top:9px;height:4px;max-width:260px;border-radius:2px;overflow:hidden;background:var(--line)}
+.secBar span{display:block;height:100%}
+.secCount{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--dim);flex:0 0 auto;white-space:nowrap}
+.chev{flex:0 0 auto;color:var(--dim);transition:transform .25s;font-size:.75rem;padding-top:7px}
+.sec.closed .chev{transform:rotate(-90deg)}
+.sec.closed .secBody{display:none}
+.secBody{padding:18px 0 4px}
+
+/* ─────────── ITEMS ─────────── */
+.item{padding:15px 0;border-bottom:1px solid var(--line-soft)}
+.item:last-child{border-bottom:0}
+.item[hidden]{display:none}
+.itemTop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.itemName{font-weight:600;font-size:.99rem;flex:1 1 auto;min-width:0}
+.pri{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);color:var(--dim);padding:2px 6px;border-radius:2px;flex:0 0 auto}
+.pri[data-p="Critical"]{color:var(--failed);border-color:rgba(206,79,68,.5)}
+.pri[data-p="High"]{color:var(--serviceable);border-color:rgba(210,178,76,.4)}
+.itemHow{color:var(--paper-2);font-size:.9rem;margin-top:5px;max-width:72ch}
+.states{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:12px;max-width:520px}
+.st{background:none;border:1px solid var(--line);color:var(--dim);border-radius:3px;padding:9px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:.04em;text-transform:uppercase;transition:.16s;min-height:38px}
+.st:hover{border-color:#445765;color:var(--paper-2)}
+.st.on{color:#0C1116;font-weight:700;border-color:transparent}
+.st.on[data-s="sound"]{background:var(--sound)}
+.st.on[data-s="serviceable"]{background:var(--serviceable)}
+.st.on[data-s="repair"]{background:var(--repair)}
+.st.on[data-s="failed"]{background:var(--failed)}
+.st.on[data-s="na"]{background:var(--na);color:var(--paper)}
+/* Five states have to share one row on a phone. "Serviceable" is the long one:
+   below ~560px the label no longer fits at the default tracking, so tighten it
+   and let it wrap as a last resort rather than clipping the word. */
+@media(max-width:560px){
+  .states{gap:4px}
+  .st{font-size:.54rem;letter-spacing:0;padding:8px 2px;white-space:normal;line-height:1.15;hyphens:auto}
+}
+.detail{display:grid;grid-template-columns:1fr 130px;gap:8px;margin-top:9px;max-width:520px}
+.detail[hidden]{display:none}
+@media(max-width:520px){.detail{grid-template-columns:1fr}}
+.detail input{background:var(--steel-2);border:1px solid var(--line);color:var(--paper);border-radius:3px;padding:9px 11px;font:inherit;font-size:.88rem;width:100%;min-width:0}
+.detail input::placeholder{color:#5F717D}
+.detail input:focus{border-color:var(--signal);outline:none}
+.item[data-s]{border-left:2px solid transparent;padding-left:13px;margin-left:-15px}
+.item[data-s="sound"]{border-left-color:var(--sound)}
+.item[data-s="serviceable"]{border-left-color:var(--serviceable)}
+.item[data-s="repair"]{border-left-color:var(--repair)}
+.item[data-s="failed"]{border-left-color:var(--failed)}
+.item[data-s="na"]{border-left-color:var(--na)}
+.item[data-s="na"] .itemName,.item[data-s="na"] .itemHow{color:var(--dim)}
+
+/* ─────────── PHOTOS ─────────── */
+.shots{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:10px;max-width:520px}
+.shots[hidden]{display:none}
+.shot{position:relative;width:62px;height:62px;border-radius:3px;overflow:hidden;border:1px solid var(--line);background:var(--steel-3);flex:0 0 auto;cursor:pointer;padding:0}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.addShot{width:62px;height:62px;border:1px dashed var(--line);border-radius:3px;background:none;color:var(--dim);cursor:pointer;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;transition:.18s}
+.addShot:hover{border-color:var(--signal);color:var(--signal)}
+.addShot svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7}
+.shotBusy{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--signal)}
+
+.lightbox{position:fixed;inset:0;z-index:150;background:rgba(6,10,13,.94);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;gap:14px}
+.lightbox[hidden]{display:none}
+.lightbox img{max-width:100%;max-height:72vh;border-radius:4px;display:block}
+.lbBar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+.lbMeta{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center}
+
+/* ─────────── FOOTER ─────────── */
+footer{border-top:1px solid var(--line);margin-top:38px;padding:24px 0 56px}
+.footIn{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center}
+.footNote{color:var(--dim);font-size:.83rem;max-width:46ch}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:none;border:1px solid var(--signal);color:var(--signal);border-radius:3px;padding:9px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.67rem;letter-spacing:.09em;text-transform:uppercase;transition:.18s}
+.btn:hover{background:var(--signal);color:#081316}
+.btn.ghost{border-color:var(--line);color:var(--dim)}
+.btn.ghost:hover{background:var(--line);color:var(--paper)}
+.btn.warn{border-color:rgba(206,79,68,.55);color:var(--failed)}
+.btn.warn:hover{background:var(--failed);color:#0C1116}
+
+/* ─────────── SYNC ─────────── */
+.who{background:var(--steel-2);border:1px solid var(--line);color:var(--paper);border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;width:118px;min-width:0}
+.who::placeholder{color:#5F717D;text-transform:uppercase}
+.who:focus{border-color:var(--signal);outline:none}
+.sync{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--sound);display:block;transition:background .3s}
+.sync[data-st="sync"] i{background:var(--signal);animation:pulse 1s ease-in-out infinite}
+.sync[data-st="off"] i{background:var(--failed)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.byline{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.byline[hidden]{display:none}
+.byline b{color:var(--paper-2);font-weight:500}
+
+/* ─────────── IMPORT ─────────── */
+.xfer{margin-top:26px;border:1px solid var(--line);border-radius:3px;padding:16px;background:var(--steel-2)}
+.xfer[hidden]{display:none}
+.xfer h4{font-size:.9rem;text-transform:uppercase;margin-bottom:6px}
+.xfer p{font-size:.85rem;color:var(--paper-2);margin:0 0 12px}
+.xfer textarea{width:100%;height:88px;background:var(--steel-3);border:1px solid var(--line);color:var(--paper-2);border-radius:3px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:.66rem;line-height:1.5;resize:vertical}
+.xfer textarea:focus{border-color:var(--signal);outline:none}
+.xferActs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.xferMsg{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;color:var(--signal);margin-top:10px;min-height:1em}
+
+.empty{color:var(--dim);font-size:.92rem;padding:26px 0;text-align:center;font-family:'JetBrains Mono',monospace;letter-spacing:.06em}
+.empty[hidden]{display:none}
+.boot{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:60px 20px;text-align:center}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+@media print{
+  body{background:#fff;color:#000;font-size:10pt}
+  .rail,.chips,.acts,.chev,.st:not(.on),.mapCard,.xfer,.lock,.addShot,.lightbox{display:none!important}
+  .hero{border-color:#000;padding:0 0 14px}
+  .sec,.sec.closed .secBody{display:block!important}
+  .item[hidden]{display:block!important}
+  .scope,.item,.detail input{border-color:#999;background:#fff;color:#000}
+  .itemHow,.footNote,.verdict{color:#333}
+  .st.on{border:1px solid #000!important;color:#000!important;background:#fff!important}
+  .item{break-inside:avoid}
+  .shot{border-color:#999}
+}
+</style>
+
+<!-- ─────────── LOCK ─────────── -->
+<div class="lock" id="lock">
+  <div class="lockCard">
+    <div class="eyebrow">Pre-restoration assessment</div>
+    <h1>Condition<br>Survey<span>Trillium 1300</span></h1>
+    <p>Shared survey. Enter the passphrase to grade and to see what the other device has entered.</p>
+    <form class="lockField" id="lockForm">
+      <input id="passIn" type="password" autocomplete="current-password" placeholder="Passphrase" aria-label="Survey passphrase" required>
+      <button class="btn" type="submit" id="lockGo">Unlock</button>
+    </form>
+    <label class="lockRow"><input type="checkbox" id="remember" checked> Stay unlocked on this device</label>
+    <div class="lockMsg" id="lockMsg"></div>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+<header class="hero">
+  <div class="wrap heroGrid">
+    <div>
+      <div class="eyebrow">Pre-restoration assessment</div>
+      <h1>Condition<br>Survey<span>Trillium 1300</span></h1>
+      <p class="lede">Eighty-four checkpoints, in the order you'd actually inspect them. Grade each one, and the trailer above colors itself in.</p>
+      <div class="tallies" id="tallies"></div>
+    </div>
+    <div>
+      <div class="mapCard">
+        <div class="mapCap">Worst finding by area</div>
+        <svg class="hull" viewBox="0 0 420 214" role="img" aria-label="Trailer diagram shaded by worst condition found in each area">
+          <!-- chassis / running gear -->
+          <g class="zone" data-zone="frame" tabindex="0" role="button" aria-label="Frame and running gear">
+            <path d="M112 172 L360 172" stroke="currentColor" stroke-width="7" stroke-linecap="round" fill="none" class="zf"/>
+            <path d="M112 168 L44 180" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" class="zf"/>
+            <path d="M112 178 L44 180" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" class="zf"/>
+            <circle cx="38" cy="180" r="7" fill="none" stroke="currentColor" stroke-width="4" class="zf"/>
+            <circle cx="238" cy="176" r="19" fill="currentColor" class="zf" opacity=".85"/>
+            <circle cx="238" cy="176" r="6.5" fill="#0E141A"/>
+          </g>
+          <!-- lower shell -->
+          <path class="zone zf" data-zone="shell" tabindex="0" role="button" aria-label="Shell and fiberglass" fill="currentColor"
+                d="M112 116 L368 116 L368 156 Q368 166 355 166 L125 166 Q112 166 112 156 Z"/>
+          <!-- upper shell -->
+          <path class="zone zf" data-zone="shell2" tabindex="0" role="button" aria-label="Shell and fiberglass" fill="currentColor"
+                d="M112 116 L112 72 Q112 42 148 40 L334 40 Q368 42 368 72 L368 116 Z"/>
+          <!-- floor strip -->
+          <rect class="zone zf" data-zone="floor" tabindex="0" role="button" aria-label="Floor" fill="currentColor"
+                x="118" y="150" width="244" height="11" rx="2"/>
+          <!-- interior structure -->
+          <rect class="zone zf" data-zone="interior" tabindex="0" role="button" aria-label="Interior structure" fill="currentColor"
+                x="272" y="84" width="76" height="32" rx="2"/>
+          <!-- outlines over fills -->
+          <path class="out" d="M112 156 L112 72 Q112 42 148 40 L334 40 Q368 42 368 72 L368 156 Q368 166 355 166 L125 166 Q112 166 112 156 Z"/>
+          <path class="thin" d="M272 84 L348 84 M272 116 L272 84"/>
+          <!-- water intrusion: seam + window + vent -->
+          <g class="zone" data-zone="water" tabindex="0" role="button" aria-label="Water intrusion points">
+            <path d="M112 116 L368 116" stroke="currentColor" stroke-width="6" class="zf"/>
+            <rect x="150" y="58" width="98" height="38" rx="3" fill="none" stroke="currentColor" stroke-width="5" class="zf"/>
+            <rect x="196" y="30" width="42" height="11" rx="2" fill="currentColor" class="zf"/>
+            <circle cx="132" cy="136" r="5" fill="currentColor" class="zf"/>
+            <circle cx="352" cy="136" r="5" fill="currentColor" class="zf"/>
+          </g>
+          <text class="lbl" x="38" y="200">HITCH</text>
+          <text class="lbl" x="196" y="24">VENT</text>
+          <text class="lbl" x="376" y="120">SEAM</text>
+        </svg>
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Filters and progress">
+  <div class="railIn">
+    <div class="filters" id="filters"></div>
+    <span class="railSpace"></span>
+    <input class="who" id="who" type="text" maxlength="14" placeholder="Your name" aria-label="Your name, shown next to grades you enter">
+    <div class="sync" id="sync" data-st="ok"><i></i><span id="syncTxt">Synced</span></div>
+    <div class="prog"><div class="progBar"><div class="progFill" id="progFill"></div></div><span class="progTxt" id="progTxt">0 of 84 graded</span></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <section class="scope" id="scope" hidden>
+    <h3>What this changes</h3>
+    <div class="scopeSub">Updates as you grade</div>
+    <p class="verdict" id="verdict"></p>
+    <ul class="flagList" id="flagList"></ul>
+    <div class="costRow"><span>Repair estimate entered</span><b id="costTotal">$0</b></div>
+  </section>
+  <div id="sections"></div>
+  <p class="empty" id="empty" hidden>Nothing matches this filter.</p>
+
+  <div class="xfer" id="xfer" hidden>
+    <h4>Import from the old prototype</h4>
+    <p>One-time migration. Paste the transfer code from the artifact version. Records are merged per checkpoint with their original timestamps — anything you have already graded here more recently is kept.</p>
+    <textarea id="xferBox" spellcheck="false" aria-label="Transfer code"></textarea>
+    <div class="xferActs">
+      <button class="btn" id="xferRun">Import</button>
+      <button class="btn ghost" id="xferClose">Close</button>
+    </div>
+    <div class="xferMsg" id="xferMsg"></div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <div class="footIn">
+    <p class="footNote">Grades sync to everyone with the link and the passphrase. Clearing wipes the survey and every photo for all of you, so it asks twice.</p>
+    <div class="acts">
+      <button class="btn" id="copyReport">Copy report</button>
+      <button class="btn ghost" id="doPrint">Print</button>
+      <button class="btn ghost" id="xferOpen">Import</button>
+      <button class="btn ghost" id="lockBtn">Lock</button>
+      <button class="btn warn" id="reset">Clear survey</button>
+    </div>
+  </div>
+</footer>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <img id="lbImg" alt="">
+  <div class="lbMeta" id="lbMeta"></div>
+  <div class="lbBar">
+    <button class="btn ghost" id="lbClose">Close</button>
+    <button class="btn warn" id="lbDel">Delete photo</button>
+  </div>
+</div>
+
+<input type="file" id="filePick" accept="image/*" capture="environment" hidden>
+
+<noscript><div class="wrap" style="padding:24px 20px"><p>This survey needs JavaScript to record grades.</p></div></noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Trillium 1300 — Condition Survey
+
+   One data path: every read and write is a passphrase-checked RPC against
+   Postgres. There is no local fallback store and no transfer-code sync — the
+   prototype needed those to survive the artifact sandbox, and a real backend
+   makes them dead weight. The only thing that persists locally is the
+   passphrase (opt-in) and your name.
+   ═══════════════════════════════════════════════════════════════ */
+
+const CFG   = window.TRILLIUM_CONFIG || {};
+const SLUG  = CFG.surveySlug || "trillium-1300";
+const POLL  = 5000;
+const PASS_KEY = "trillium:pass", NAME_KEY = "trillium:name";
+
+let sb = null;
+let DOC = null, SECTIONS = [], STATES = [], SMAP = {};
+let TOTAL = 0;
+
+let rec    = {};            // checkpointId -> record
+let shots  = {};            // checkpointId -> [photo meta]
+let pass   = null;
+let name   = "";
+let filter = "all";
+let lastSig = "";
+let pollTimer = null;
+
+const pending = new Map();  // checkpointId -> debounce timer, marks local-newer
+
+const FILTERS=[
+  {k:"all",label:"All"},
+  {k:"todo",label:"Not graded"},
+  {k:"problem",label:"Problems"},
+  {k:"critical",label:"Critical only"}
+];
+
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id);
+
+function ago(t){
+  if(!t)return "";
+  const m=Math.floor((Date.now()-t)/60000);
+  if(m<1)return "just now";
+  if(m<60)return m+"m ago";
+  const h=Math.floor(m/60);
+  if(h<24)return h+"h ago";
+  return Math.floor(h/24)+"d ago";
+}
+function money(n){return "$"+Math.round(n).toLocaleString();}
+function parseCost(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=parseFloat(String(v).replace(/[^0-9.]/g,""));
+  return isNaN(n)?null:n;
+}
+function status(st,txt){
+  const n=$("sync");
+  if(!n)return;
+  n.dataset.st=st;
+  $("syncTxt").textContent=txt;
+}
+
+/* ─────────── transport ─────────── */
+
+async function rpc(fn,args){
+  const {data,error}=await sb.rpc(fn,Object.assign({p_slug:SLUG,p_pass:pass},args||{}));
+  if(error)throw error;
+  return data;
+}
+
+/* ─────────── build ─────────── */
+
+function build(){
+  const host=$("sections");
+  host.innerHTML="";
+  SECTIONS.forEach(sec=>{
+    const s=el("section","sec");s.id="sec-"+sec.id;s.dataset.sec=sec.id;
+    const head=el("div","secHead");
+    head.innerHTML=`<span class="secNum">${esc(sec.order)}</span>
+      <div class="secTitleWrap"><h2>${esc(sec.title)}</h2><div class="secBar"></div></div>
+      <span class="secCount"></span><span class="chev">▼</span>`;
+    head.onclick=e=>{if(!e.target.closest("button,input"))s.classList.toggle("closed");};
+    const body=el("div","secBody");
+
+    sec.items.forEach(it=>{
+      const k=it.id;
+      const row=el("div","item");row.dataset.k=k;row.dataset.pri=it.priority;
+      const top=el("div","itemTop");
+      top.appendChild(el("div","itemName",esc(it.name)));
+      const p=el("span","pri",esc(it.priority));p.dataset.p=it.priority;top.appendChild(p);
+      row.appendChild(top);
+      row.appendChild(el("div","itemHow",esc(it.guidance)));
+
+      const states=el("div","states");
+      STATES.forEach(st=>{
+        const b=el("button","st",esc(st.label));b.dataset.s=st.id;
+        b.setAttribute("aria-pressed","false");
+        b.onclick=()=>{
+          const cur=(rec[k]||{}).state;
+          patch(k,{state:cur===st.id?null:st.id});
+        };
+        states.appendChild(b);
+      });
+      row.appendChild(states);
+
+      const det=el("div","detail");det.hidden=true;
+      const note=document.createElement("input");
+      note.type="text";note.placeholder="What you found";note.setAttribute("aria-label","Notes for "+it.name);
+      note.oninput=()=>patch(k,{note:note.value},true);
+      const cost=document.createElement("input");
+      cost.type="text";cost.inputMode="decimal";cost.placeholder="Est. $";cost.setAttribute("aria-label","Estimated cost for "+it.name);
+      cost.oninput=()=>{patch(k,{costEstimate:parseCost(cost.value)},true);refresh(true);};
+      det.append(note,cost);
+      row.appendChild(det);
+
+      const strip=el("div","shots");strip.hidden=true;
+      row.appendChild(strip);
+
+      const by=el("div","byline");by.hidden=true;
+      row.appendChild(by);
+      body.appendChild(row);
+    });
+    s.append(head,body);host.appendChild(s);
+  });
+
+  const fh=$("filters");fh.innerHTML="";
+  FILTERS.forEach(f=>{
+    const b=el("button","fbtn"+(f.k===filter?" on":""),f.label);b.dataset.f=f.k;
+    b.onclick=()=>{filter=f.k;[...fh.children].forEach(c=>c.classList.toggle("on",c.dataset.f===filter));refresh();};
+    fh.appendChild(b);
+  });
+
+  const ch=$("chips");ch.innerHTML="";
+  SECTIONS.filter(s=>!s.diagramZone).forEach(sec=>{
+    const b=el("button","zchip",`<i data-zc="${esc(sec.id)}"></i>${esc(sec.title)}`);
+    b.onclick=()=>goto(sec.id);
+    ch.appendChild(b);
+  });
+  document.querySelectorAll(".hull .zone").forEach(z=>{
+    const target=z.dataset.zone.replace(/2$/,"");
+    z.addEventListener("click",()=>goto(target));
+    z.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goto(target);}});
+  });
+}
+function goto(id){
+  const s=$("sec-"+id);
+  if(!s)return;
+  s.classList.remove("closed");
+  s.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ─────────── writes ─────────── */
+
+/* Optimistic: paint immediately, push after a beat. The checkpoint sits in
+   `pending` until its write lands, and the poller refuses to overwrite a
+   pending checkpoint — that's what stops a background pull from stomping on
+   something you're still typing. */
+function patch(k,fields,quiet){
+  const r=rec[k]||(rec[k]={state:null,note:"",costEstimate:null,updatedBy:"",updatedAt:0});
+  Object.assign(r,fields);
+  r.updatedBy=name||r.updatedBy||"";
+  r.updatedAt=Date.now();
+
+  clearTimeout(pending.get(k));
+  status("sync","Saving");
+  pending.set(k,setTimeout(()=>push(k),500));
+
+  if(!quiet)refresh();
+}
+
+async function push(k){
+  const r=rec[k]||{};
+  try{
+    await rpc("survey_upsert",{
+      p_checkpoint:k,
+      p_state:r.state||null,
+      p_note:r.note||"",
+      p_cost:r.costEstimate===undefined?null:r.costEstimate,
+      p_by:name||"",
+      p_updated_at:null           // let Postgres stamp it; phone clocks drift
+    });
+    pending.delete(k);
+    if(!pending.size)status("ok","Synced");
+  }catch(e){
+    /* Bad signal in a driveway is the normal case, not the exception. Keep the
+       checkpoint in `pending` — that both blocks the poller from overwriting
+       the unsaved edit and marks it for another attempt. */
+    console.error("upsert failed, will retry",k,e);
+    status("off","Retrying");
+    pending.set(k,setTimeout(()=>push(k),4000));
+  }
+}
+
+/* ─────────── reads ─────────── */
+
+function applyRecords(remote){
+  let changed=false;
+  for(const k in remote){
+    if(pending.has(k))continue;                 // local edit in flight wins
+    const r=remote[k];
+    const cur=rec[k];
+    if(!cur||cur.updatedAt!==r.updatedAt||cur.state!==r.state||cur.note!==r.note){
+      rec[k]=r;changed=true;
+    }
+  }
+  for(const k in rec){                          // record cleared on the server
+    if(!(k in remote)&&!pending.has(k)){delete rec[k];changed=true;}
+  }
+  return changed;
+}
+
+function groupPhotos(list){
+  const g={};
+  (list||[]).forEach(p=>{(g[p.checkpoint]||(g[p.checkpoint]=[])).push(p);});
+  return g;
+}
+
+async function pullAll(){
+  const [records,photos]=await Promise.all([
+    rpc("survey_records"),
+    rpc("survey_photos")
+  ]);
+  applyRecords(records||{});
+  shots=groupPhotos(photos);
+  refresh();
+}
+
+async function tick(){
+  if(document.hidden||pending.size)return;
+  try{
+    const v=await rpc("survey_rev");
+    const sig=v.n+":"+v.last+":"+v.photos;
+    if(sig!==lastSig){lastSig=sig;await pullAll();}
+    if(!pending.size)status("ok","Synced");
+  }catch(e){
+    status("off","Offline");
+  }
+}
+
+/* ─────────── photos ─────────── */
+
+function blobToB64(blob){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(",")[1]);
+    fr.onerror=rej;
+    fr.readAsDataURL(blob);
+  });
+}
+
+/* Downscale in the browser so we ship ~200KB instead of a 4MB phone photo.
+   imageOrientation:"from-image" applies the EXIF rotation, otherwise every
+   portrait shot lands on its side. */
+async function shrink(file,maxDim,quality){
+  const bmp=await createImageBitmap(file,{imageOrientation:"from-image"});
+  const scale=Math.min(1,maxDim/Math.max(bmp.width,bmp.height));
+  const w=Math.max(1,Math.round(bmp.width*scale)),h=Math.max(1,Math.round(bmp.height*scale));
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  c.getContext("2d").drawImage(bmp,0,0,w,h);
+  bmp.close&&bmp.close();
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",quality));
+  return blobToB64(blob);
+}
+
+let shotTarget=null;
+const filePick=$("filePick");
+
+function addPhoto(k){
+  shotTarget=k;
+  filePick.value="";
+  filePick.click();
+}
+
+filePick.onchange=async()=>{
+  const file=filePick.files&&filePick.files[0];
+  if(!file||!shotTarget)return;
+  const k=shotTarget;shotTarget=null;
+  const strip=document.querySelector('.item[data-k="'+CSS.escape(k)+'"] .shots');
+  const busy=el("span","shotBusy","Uploading…");
+  strip&&strip.appendChild(busy);
+  try{
+    const [thumb,full]=await Promise.all([
+      shrink(file,240,0.55),
+      shrink(file,1600,0.75)
+    ]);
+    await rpc("survey_photo_add",{
+      p_checkpoint:k,p_thumb:thumb,p_data:full,
+      p_mime:"image/jpeg",p_caption:"",p_by:name||""
+    });
+    lastSig="";                 // force the next tick to pull
+    await pullAll();
+  }catch(e){
+    console.error("photo upload failed",e);
+    busy.textContent="Upload failed";
+    setTimeout(()=>busy.remove(),2500);
+    return;
+  }
+  busy.remove();
+};
+
+let lbId=null;
+async function openPhoto(p){
+  lbId=p.id;
+  $("lbImg").src="";
+  $("lbMeta").textContent=(p.uploadedBy?p.uploadedBy+" · ":"")+ago(p.uploadedAt);
+  $("lightbox").hidden=false;
+  try{
+    const d=await rpc("survey_photo_data",{p_id:p.id});
+    $("lbImg").src="data:"+(d.mime||"image/jpeg")+";base64,"+d.data;
+  }catch(e){ $("lbMeta").textContent="Could not load that photo"; }
+}
+$("lbClose").onclick=()=>{$("lightbox").hidden=true;$("lbImg").src="";lbId=null;};
+$("lbDel").onclick=async function(){
+  if(!lbId)return;
+  if(!this.dataset.armed){
+    this.dataset.armed="1";this.textContent="Delete for everyone?";
+    setTimeout(()=>{delete this.dataset.armed;this.textContent="Delete photo";},4000);
+    return;
+  }
+  const id=lbId;
+  $("lightbox").hidden=true;$("lbImg").src="";lbId=null;
+  this.textContent="Delete photo";delete this.dataset.armed;
+  try{await rpc("survey_photo_del",{p_id:id});lastSig="";await pullAll();}
+  catch(e){console.error("photo delete failed",e);}
+};
+$("lightbox").addEventListener("click",e=>{if(e.target===$("lightbox"))$("lbClose").click();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("lightbox").hidden)$("lbClose").click();});
+
+/* ─────────── render ─────────── */
+
+function worst(sec){
+  let w=null;
+  sec.items.forEach(it=>{
+    const s=(rec[it.id]||{}).state;
+    if(!s||s==="na")return;
+    if(!w||SMAP[s].severity>SMAP[w].severity)w=s;
+  });
+  return w;
+}
+
+function renderShots(strip,k,r){
+  const list=shots[k]||[];
+  const show=!!r.state&&r.state!=="na";
+  strip.hidden=!show;
+  if(!show){strip.innerHTML="";return;}
+
+  /* rebuild only when the photo set actually changed, so we don't thrash the
+     DOM on every poll */
+  const sig=list.map(p=>p.id).join(",");
+  if(strip.dataset.sig===sig)return;
+  strip.dataset.sig=sig;
+  strip.innerHTML="";
+
+  list.forEach(p=>{
+    const b=el("button","shot");
+    b.setAttribute("aria-label","Photo"+(p.uploadedBy?" by "+p.uploadedBy:""));
+    const img=document.createElement("img");
+    img.src="data:"+(p.mime||"image/jpeg")+";base64,"+p.thumb;
+    img.alt="";
+    b.appendChild(img);
+    b.onclick=()=>openPhoto(p);
+    strip.appendChild(b);
+  });
+  const add=el("button","addShot",
+    '<svg viewBox="0 0 24 24"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.1-2h8.4l1.1 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg><span>Photo</span>');
+  add.onclick=()=>addPhoto(k);
+  strip.appendChild(add);
+}
+
+function refresh(costOnly){
+  let graded=0,costs=0;
+  const counts={sound:0,serviceable:0,repair:0,failed:0,na:0};
+  const flags=[];
+
+  SECTIONS.forEach(sec=>{
+    const secEl=$("sec-"+sec.id);
+    let g=0,shown=0;
+    const bars={};
+    sec.items.forEach(it=>{
+      const k=it.id,r=rec[k]||{};
+      const row=secEl.querySelector('.item[data-k="'+CSS.escape(k)+'"]');
+      if(r.state){row.dataset.s=r.state;counts[r.state]++;graded++;g++;bars[r.state]=(bars[r.state]||0)+1;}
+      else{delete row.dataset.s;}
+
+      row.querySelectorAll(".st").forEach(b=>{
+        const on=b.dataset.s===r.state;
+        b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");
+      });
+
+      const det=row.querySelector(".detail");
+      det.hidden=!r.state||r.state==="na";
+      const ins=det.querySelectorAll("input");
+      ins.forEach((inp,n)=>{
+        /* never clobber what someone is actively typing */
+        if(inp===document.activeElement)return;
+        const v=n===0?(r.note||""):(r.costEstimate==null?"":String(r.costEstimate));
+        if(inp.value!==v)inp.value=v;
+      });
+
+      renderShots(row.querySelector(".shots"),k,r);
+
+      const by=row.querySelector(".byline");
+      if(r.state&&(r.updatedBy||r.updatedAt)){
+        by.hidden=false;
+        by.innerHTML=(r.updatedBy?"<b>"+esc(r.updatedBy)+"</b> · ":"")+ago(r.updatedAt);
+      }else{by.hidden=true;}
+
+      if(r.costEstimate!=null)costs+=r.costEstimate;
+
+      if((r.state==="failed"||r.state==="repair")&&(it.priority==="Critical"||it.priority==="High")){
+        flags.push({name:it.name,sec:sec.title,s:r.state,pri:it.priority});
+      }
+
+      let vis=true;
+      if(filter==="todo")vis=!r.state;
+      else if(filter==="problem")vis=(r.state==="repair"||r.state==="failed");
+      else if(filter==="critical")vis=(it.priority==="Critical");
+      row.hidden=!vis;
+      if(vis)shown++;
+    });
+
+    secEl.querySelector(".secCount").textContent=g+"/"+sec.items.length;
+    secEl.hidden=(shown===0);
+    const bar=secEl.querySelector(".secBar");
+    bar.innerHTML="";
+    STATES.forEach(st=>{
+      if(!bars[st.id])return;
+      const sp=document.createElement("span");
+      sp.style.background=st.color;
+      sp.style.flex=bars[st.id];
+      bar.appendChild(sp);
+    });
+    bar.style.display="flex";
+
+    const w=worst(sec);
+    const col=w?SMAP[w].color:"#33424E";
+    if(sec.diagramZone){
+      document.querySelectorAll('.hull [data-zone="'+sec.diagramZone+'"], .hull [data-zone="'+sec.diagramZone+'2"]')
+        .forEach(z=>{z.style.color=col;});
+    }else{
+      const dot=document.querySelector('[data-zc="'+sec.id+'"]');
+      if(dot)dot.style.background=col;
+    }
+  });
+
+  $("empty").hidden=document.querySelectorAll(".sec:not([hidden])").length>0;
+
+  const th=$("tallies");th.innerHTML="";
+  STATES.forEach(st=>{
+    if(st.id==="na"&&!counts.na)return;
+    th.appendChild(el("div","tally",`<i style="background:${st.color}"></i>${esc(st.label)} <b>${counts[st.id]}</b>`));
+  });
+  th.appendChild(el("div","tally",`<i style="background:#33424E"></i>Not graded <b>${TOTAL-graded}</b>`));
+
+  $("progFill").style.width=(graded/TOTAL*100)+"%";
+  $("progTxt").textContent=graded+" of "+TOTAL+" graded";
+
+  const scope=$("scope");
+  scope.hidden=(graded===0);
+  if(graded){
+    const critFail=flags.filter(f=>f.pri==="Critical"&&f.s==="failed");
+    const v=$("verdict");
+    if(critFail.length){
+      const areas=[...new Set(critFail.map(f=>f.sec))];
+      v.innerHTML=`<b>${critFail.length} critical ${critFail.length===1?"item has":"items have"} failed</b>, in ${esc(areas.join(" and "))}. Price these before committing to any cosmetic work — they set the ceiling on what the whole project is worth.`;
+    }else if(flags.length){
+      v.innerHTML=`<b>No critical failures so far.</b> ${flags.length} high-priority ${flags.length===1?"item needs":"items need"} attention. Sequence them ahead of anything cosmetic.`;
+    }else if(graded<TOTAL){
+      v.innerHTML=`<b>Clean so far.</b> ${TOTAL-graded} checkpoints left to grade.`;
+    }else{
+      v.innerHTML=`<b>Survey complete, nothing flagged.</b> Structure and systems are sound — the project is a finish and build-out job.`;
+    }
+    const fl=$("flagList");fl.innerHTML="";
+    flags.sort((a,b)=>SMAP[b.s].severity-SMAP[a.s].severity||(a.pri==="Critical"?-1:1))
+      .slice(0,10).forEach(f=>{
+      const li=document.createElement("li");
+      li.innerHTML=`<span class="flagDot" style="background:${SMAP[f.s].color}"></span><span>${esc(f.name)}</span><span class="flagWhere">${esc(f.sec)}</span>`;
+      fl.appendChild(li);
+    });
+    if(flags.length>10){
+      const li=document.createElement("li");
+      li.innerHTML=`<span class="flagDot" style="background:#33424E"></span><span style="color:var(--dim)">+ ${flags.length-10} more flagged</span>`;
+      fl.appendChild(li);
+    }
+    $("costTotal").textContent=money(costs);
+  }
+}
+
+/* ─────────── report ─────────── */
+
+function report(){
+  const who=[...new Set(Object.values(rec).filter(r=>r.state&&r.updatedBy).map(r=>r.updatedBy))];
+  const L=["TRILLIUM 1300 — CONDITION SURVEY","Date: "+new Date().toLocaleDateString()];
+  if(who.length)L.push("Surveyed by: "+who.join(", "));
+  L.push("");
+  let graded=0,costs=0,pics=0;
+  SECTIONS.forEach(sec=>{
+    const rows=[];
+    sec.items.forEach(it=>{
+      const r=rec[it.id]||{};
+      if(!r.state)return;
+      graded++;
+      if(r.costEstimate!=null)costs+=r.costEstimate;
+      const n=(shots[it.id]||[]).length;
+      pics+=n;
+      rows.push("  ["+SMAP[r.state].label.toUpperCase()+"] "+it.name
+        +(r.note?" — "+r.note:"")
+        +(r.costEstimate!=null?"  ("+money(r.costEstimate)+")":"")
+        +(n?"  ["+n+" photo"+(n>1?"s":"")+"]":"")
+        +(r.updatedBy?"  ["+r.updatedBy+"]":""));
+    });
+    if(rows.length)L.push(sec.order+" · "+sec.title.toUpperCase(),...rows,"");
+  });
+  L.push("—".repeat(34),
+    "Graded: "+graded+" of "+TOTAL,
+    "Repair estimate entered: "+money(costs));
+  if(pics)L.push("Photos attached: "+pics);
+  const ungraded=TOTAL-graded;
+  if(ungraded)L.push("Still to inspect: "+ungraded);
+  return L.join("\n");
+}
+
+/* ─────────── actions ─────────── */
+
+$("copyReport").onclick=async function(){
+  const txt=report();
+  try{await navigator.clipboard.writeText(txt);this.textContent="Copied";}
+  catch(e){this.textContent="Copy failed";}
+  setTimeout(()=>this.textContent="Copy report",1700);
+};
+$("doPrint").onclick=()=>{
+  document.querySelectorAll(".sec").forEach(s=>s.classList.remove("closed"));
+  window.print();
+};
+$("reset").onclick=async function(){
+  if(this.dataset.armed){
+    delete this.dataset.armed;this.textContent="Clear survey";
+    try{
+      await rpc("survey_clear");
+      rec={};shots={};lastSig="";
+      refresh();
+    }catch(e){console.error("clear failed",e);status("off","Clear failed");}
+  }else{
+    this.dataset.armed="1";this.textContent="Clear for everyone?";
+    setTimeout(()=>{delete this.dataset.armed;this.textContent="Clear survey";},4000);
+  }
+};
+$("lockBtn").onclick=()=>{
+  try{localStorage.removeItem(PASS_KEY);sessionStorage.removeItem(PASS_KEY);}catch(e){}
+  location.reload();
+};
+
+const whoIn=$("who");
+whoIn.oninput=()=>{
+  name=whoIn.value.trim();
+  try{localStorage.setItem(NAME_KEY,name);}catch(e){}
+};
+
+/* ─────────── one-time import from the prototype ─────────── */
+
+/* The prototype keyed records "<section>·<index>" with a middle dot; the JSON
+   uses "<section>.<index>". Same ordering, so the index carries straight over. */
+function decodeTransfer(t){
+  const o=JSON.parse(decodeURIComponent(escape(atob(t.replace(/\s+/g,"")))));
+  const src=(o&&o.d)||o||{};
+  const out={};
+  for(const rawKey in src){
+    const a=src[rawKey];
+    if(!Array.isArray(a))continue;
+    out[rawKey.replace(/·/g,".")]={
+      state: a[0]>=0&&STATES[a[0]] ? STATES[a[0]].id : null,
+      note: a[1]||"",
+      costEstimate: parseCost(a[2]),
+      updatedBy: a[3]||"",
+      updatedAt: a[4]||0
+    };
+  }
+  return out;
+}
+
+const xmsg=t=>{$("xferMsg").textContent=t;};
+$("xferOpen").onclick=()=>{
+  const x=$("xfer");x.hidden=false;xmsg("");
+  x.scrollIntoView({behavior:"smooth",block:"center"});
+};
+$("xferClose").onclick=()=>{$("xfer").hidden=true;};
+$("xferRun").onclick=async()=>{
+  const raw=$("xferBox").value.trim();
+  if(!raw)return xmsg("Paste a code first");
+  let incoming;
+  try{incoming=decodeTransfer(raw);}catch(e){return xmsg("That code is not readable");}
+
+  const ids=new Set();
+  SECTIONS.forEach(s=>s.items.forEach(i=>ids.add(i.id)));
+
+  let ok=0,skipped=0,failed=0;
+  xmsg("Importing…");
+  for(const k in incoming){
+    if(!ids.has(k)){skipped++;continue;}
+    const r=incoming[k];
+    try{
+      await rpc("survey_upsert",{
+        p_checkpoint:k,
+        p_state:r.state,
+        p_note:r.note,
+        p_cost:r.costEstimate,
+        p_by:r.updatedBy||"import",
+        p_updated_at:r.updatedAt||null   // keep the original stamp so newer local work wins
+      });
+      ok++;
+    }catch(e){failed++;console.error("import failed",k,e);}
+  }
+  lastSig="";
+  await pullAll();
+  xmsg(`Imported ${ok}`+(skipped?` · ${skipped} unknown id skipped`:"")+(failed?` · ${failed} failed`:""));
+};
+
+/* ─────────── boot ─────────── */
+
+function startPolling(){
+  clearInterval(pollTimer);
+  pollTimer=setInterval(tick,POLL);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick();});
+}
+
+async function enter(p,remember){
+  pass=p;
+  await rpc("survey_unlock");                 // throws on a bad passphrase
+  try{
+    (remember?localStorage:sessionStorage).setItem(PASS_KEY,p);
+  }catch(e){}
+  $("lock").hidden=true;
+  $("app").hidden=false;
+  try{name=localStorage.getItem(NAME_KEY)||"";}catch(e){}
+  whoIn.value=name;
+  await pullAll();
+  const v=await rpc("survey_rev");
+  lastSig=v.n+":"+v.last+":"+v.photos;
+  status("ok","Synced");
+  startPolling();
+}
+
+$("lockForm").onsubmit=async e=>{
+  e.preventDefault();
+  const msg=$("lockMsg"),go=$("lockGo");
+  const p=$("passIn").value;
+  if(!p)return;
+  go.disabled=true;msg.className="lockMsg ok";msg.textContent="Checking…";
+  try{
+    await enter(p,$("remember").checked);
+  }catch(err){
+    pass=null;
+    msg.className="lockMsg";
+    msg.textContent=/28000|passphrase/i.test(err.message||"")?"Wrong passphrase":"Could not reach the survey";
+    console.error(err);
+  }
+  go.disabled=false;
+};
+
+(async()=>{
+  if(!CFG.supabaseUrl||CFG.supabaseUrl.includes("YOUR-PROJECT-REF")){
+    document.body.innerHTML='<div class="boot">config.js has not been filled in yet</div>';
+    return;
+  }
+  sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey,{auth:{persistSession:false}});
+
+  try{
+    DOC=await (await fetch("checkpoints.json",{cache:"no-cache"})).json();
+  }catch(e){
+    document.body.innerHTML='<div class="boot">Could not load checkpoints.json</div>';
+    return;
+  }
+  STATES=DOC.states;
+  SMAP=Object.fromEntries(STATES.map(s=>[s.id,s]));
+  SECTIONS=DOC.sections;
+  TOTAL=SECTIONS.reduce((n,s)=>n+s.items.length,0);
+
+  build();
+  SECTIONS.forEach((s,i)=>{if(i>0)$("sec-"+s.id).classList.add("closed");});
+
+  /* a stored passphrase means straight in, no lock screen */
+  let saved=null;
+  try{saved=localStorage.getItem(PASS_KEY)||sessionStorage.getItem(PASS_KEY);}catch(e){}
+  if(saved){
+    try{await enter(saved,localStorage.getItem(PASS_KEY)!==null);return;}
+    catch(e){
+      try{localStorage.removeItem(PASS_KEY);sessionStorage.removeItem(PASS_KEY);}catch(e2){}
+    }
+  }
+  $("passIn").focus();
+})();
+</script>

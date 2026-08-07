@@ -1,0 +1,620 @@
+{
+  "$schema": "trillium-condition-survey/v1",
+  "title": "Trillium 1300 — Condition Survey",
+  "states": [
+    {
+      "id": "sound",
+      "label": "Sound",
+      "severity": 1,
+      "color": "#6FAE7E"
+    },
+    {
+      "id": "serviceable",
+      "label": "Serviceable",
+      "severity": 2,
+      "color": "#D2B24C"
+    },
+    {
+      "id": "repair",
+      "label": "Repair",
+      "severity": 3,
+      "color": "#D4813F"
+    },
+    {
+      "id": "failed",
+      "label": "Failed",
+      "severity": 4,
+      "color": "#CE4F44"
+    },
+    {
+      "id": "na",
+      "label": "N/A",
+      "severity": 0,
+      "color": "#5C6C77"
+    }
+  ],
+  "priorities": [
+    "Critical",
+    "High",
+    "Medium",
+    "Low"
+  ],
+  "sections": [
+    {
+      "id": "frame",
+      "order": "01",
+      "title": "Frame & running gear",
+      "diagramZone": "frame",
+      "items": [
+        {
+          "id": "frame.0",
+          "name": "Frame rails and outriggers",
+          "guidance": "Probe with a screwdriver at welds and anywhere that holds standing water. Surface scale is fine; flaking layers or a screwdriver that sinks in is not.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.1",
+          "name": "Tongue / A-frame junction",
+          "guidance": "Cracks at the welds where the tongue meets the main rails. Known failure point on these.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.2",
+          "name": "Coupler",
+          "guidance": "Latch wear, play in the ball socket, pin and clip present.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.3",
+          "name": "Safety chain attachment",
+          "guidance": "Welded loops intact and not rusted thin.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.4",
+          "name": "Torsion axle condition",
+          "guidance": "Trailing arms should sit level or slightly up. Pointing down and rearward means the rubber has sagged.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.5",
+          "name": "Wheel camber",
+          "guidance": "Tires tilting inward at the top point to a worn or sagged axle.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.6",
+          "name": "Leaf springs (if equipped)",
+          "guidance": "Flattened arch, broken leaves, worn shackle bushings.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.7",
+          "name": "Wheel bearings",
+          "guidance": "Jack each wheel, spin it, feel for grit. Rock at 12 and 6 o'clock for play.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.8",
+          "name": "Grease seals",
+          "guidance": "Grease weeping onto the backing plate or the inside of the wheel.",
+          "priority": "High"
+        },
+        {
+          "id": "frame.9",
+          "name": "Tires — DOT date code",
+          "guidance": "Four-digit code on the sidewall, week and year. Over 6–7 years old means replace regardless of tread.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.10",
+          "name": "Spare tire and jack",
+          "guidance": "Present, correct size, holds air.",
+          "priority": "Medium"
+        },
+        {
+          "id": "frame.11",
+          "name": "Body-to-frame bolts",
+          "guidance": "Rusted through, missing, or holes elongated from movement.",
+          "priority": "Critical"
+        },
+        {
+          "id": "frame.12",
+          "name": "Brakes (if equipped)",
+          "guidance": "Drum condition, magnet wear, adjuster function.",
+          "priority": "High"
+        },
+        {
+          "id": "frame.13",
+          "name": "Breakaway switch and battery",
+          "guidance": "Cable intact, switch functional, battery holds charge.",
+          "priority": "High"
+        },
+        {
+          "id": "frame.14",
+          "name": "Tongue jack and stabilizers",
+          "guidance": "Crank freely, no bent legs, footpads present.",
+          "priority": "Medium"
+        },
+        {
+          "id": "frame.15",
+          "name": "Harness to tow vehicle",
+          "guidance": "Connector corrosion, chafed insulation along the tongue.",
+          "priority": "Medium"
+        }
+      ]
+    },
+    {
+      "id": "water",
+      "order": "02",
+      "title": "Water intrusion",
+      "diagramZone": "water",
+      "items": [
+        {
+          "id": "water.0",
+          "name": "Belly band seam — exterior",
+          "guidance": "Press along the full perimeter. Loose or missing rivets, gaps, failed sealant.",
+          "priority": "Critical"
+        },
+        {
+          "id": "water.1",
+          "name": "Belly band seam — interior",
+          "guidance": "Staining, damp insulation, or rust tracks below the seam line inside.",
+          "priority": "Critical"
+        },
+        {
+          "id": "water.2",
+          "name": "Window frames — all corners",
+          "guidance": "Corners are where they leak. Look for staining below each corner inside.",
+          "priority": "Critical"
+        },
+        {
+          "id": "water.3",
+          "name": "Window glazing seals",
+          "guidance": "Cracked or hardened rubber, fogged panes.",
+          "priority": "High"
+        },
+        {
+          "id": "water.4",
+          "name": "Window weep holes",
+          "guidance": "Clear and draining. Blocked weeps push water inward.",
+          "priority": "High"
+        },
+        {
+          "id": "water.5",
+          "name": "Window frame availability",
+          "guidance": "Note make and model. Original parts are scarce — this decides repair vs. replace.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.6",
+          "name": "Roof vent",
+          "guidance": "The most common leak on the trailer. Lens for UV cracking, flange for sealant failure.",
+          "priority": "Critical"
+        },
+        {
+          "id": "water.7",
+          "name": "Door frame seal and gasket",
+          "guidance": "Compression all the way around, no daylight, gasket not flattened.",
+          "priority": "High"
+        },
+        {
+          "id": "water.8",
+          "name": "Door sag and latch alignment",
+          "guidance": "A door you have to lift to latch suggests shell or floor movement.",
+          "priority": "High"
+        },
+        {
+          "id": "water.9",
+          "name": "Running and marker light flanges",
+          "guidance": "Sealant condition at every lens.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.10",
+          "name": "License plate light",
+          "guidance": "Small penetration, routinely overlooked.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.11",
+          "name": "City water inlet",
+          "guidance": "Sealant and backing condition.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.12",
+          "name": "Propane line pass-through",
+          "guidance": "Grommet or sealant intact where the line enters.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.13",
+          "name": "Appliance vents",
+          "guidance": "Fridge and furnace flange sealant, screens intact, no nesting.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water.14",
+          "name": "Interior ceiling corners",
+          "guidance": "Brown staining is the tell-tale. Note exactly where — it points at the leak above.",
+          "priority": "Critical"
+        },
+        {
+          "id": "water.15",
+          "name": "Smell test",
+          "guidance": "Musty or earthy means active or recent moisture.",
+          "priority": "High"
+        },
+        {
+          "id": "water.16",
+          "name": "Screw heads inside",
+          "guidance": "Rust bleeding from a screw head means water is reaching it.",
+          "priority": "High"
+        }
+      ]
+    },
+    {
+      "id": "floor",
+      "order": "03",
+      "title": "Floor",
+      "diagramZone": "floor",
+      "items": [
+        {
+          "id": "floor.0",
+          "name": "Full-floor walk",
+          "guidance": "Cover every square foot on hands and knees. Press hard. Soft, spongy, or crunchy all mean rot.",
+          "priority": "Critical"
+        },
+        {
+          "id": "floor.1",
+          "name": "Door threshold",
+          "guidance": "Highest-probability rot location on the whole trailer.",
+          "priority": "Critical"
+        },
+        {
+          "id": "floor.2",
+          "name": "Under the dinette",
+          "guidance": "Hidden by furniture, so almost never inspected.",
+          "priority": "Critical"
+        },
+        {
+          "id": "floor.3",
+          "name": "Wheel well areas",
+          "guidance": "Road spray plus any wheel well seam failure.",
+          "priority": "High"
+        },
+        {
+          "id": "floor.4",
+          "name": "Perimeter where floor meets shell",
+          "guidance": "Separation, gaps, or a lip that has lifted.",
+          "priority": "High"
+        },
+        {
+          "id": "floor.5",
+          "name": "Underside probe",
+          "guidance": "From below, probe the plywood with an awl wherever you can reach. Note thickness and whether it's sealed.",
+          "priority": "High"
+        },
+        {
+          "id": "floor.6",
+          "name": "Floor-to-frame contact points",
+          "guidance": "Rot concentrates where wet plywood sat on steel.",
+          "priority": "High"
+        }
+      ]
+    },
+    {
+      "id": "shell",
+      "order": "04",
+      "title": "Shell & fiberglass",
+      "diagramZone": "shell",
+      "items": [
+        {
+          "id": "shell.0",
+          "name": "Stress cracks at window corners",
+          "guidance": "Cracks radiating from openings. Note whether they go through or are gelcoat only.",
+          "priority": "High"
+        },
+        {
+          "id": "shell.1",
+          "name": "Stress cracks at door corner",
+          "guidance": "Same check, plus watch for flex when the door swings.",
+          "priority": "High"
+        },
+        {
+          "id": "shell.2",
+          "name": "Cracks around through-hardware",
+          "guidance": "Anywhere a bolt or screw passes through the shell.",
+          "priority": "Medium"
+        },
+        {
+          "id": "shell.3",
+          "name": "Gelcoat buff test",
+          "guidance": "Compound a small oxidized patch by hand. If gloss comes back, you may not need paint at all.",
+          "priority": "High"
+        },
+        {
+          "id": "shell.4",
+          "name": "Crazing vs. structural cracking",
+          "guidance": "Low angle in raking light. Fine spider webbing is cosmetic; a defined line you can catch a fingernail on is not.",
+          "priority": "High"
+        },
+        {
+          "id": "shell.5",
+          "name": "Previous repairs",
+          "guidance": "Mismatched patches, filler bridging cracks, abandoned holes from old hardware.",
+          "priority": "Medium"
+        },
+        {
+          "id": "shell.6",
+          "name": "Delamination at the seam",
+          "guidance": "Tap along the belly band. A dull thud instead of a sharp tick means separation.",
+          "priority": "High"
+        },
+        {
+          "id": "shell.7",
+          "name": "Roof surface",
+          "guidance": "Most UV-degraded panel on the trailer. Do not stand on it — the span is unsupported.",
+          "priority": "High"
+        }
+      ]
+    },
+    {
+      "id": "interior",
+      "order": "05",
+      "title": "Interior structure",
+      "diagramZone": "interior",
+      "items": [
+        {
+          "id": "interior.0",
+          "name": "Which furniture is bonded to the shell",
+          "guidance": "Dinette base, closet, and galley are often glassed in and carry load. Identify before removing anything.",
+          "priority": "Critical"
+        },
+        {
+          "id": "interior.1",
+          "name": "Shell shape reference",
+          "guidance": "Measure diagonals and width at several heights before gutting, so you can detect deformation later.",
+          "priority": "High"
+        },
+        {
+          "id": "interior.2",
+          "name": "Bracing plan",
+          "guidance": "If structural furniture comes out, decide now what temporarily braces the shell.",
+          "priority": "Critical"
+        },
+        {
+          "id": "interior.3",
+          "name": "Insulation behind panels",
+          "guidance": "Wet, compressed, or missing.",
+          "priority": "Medium"
+        },
+        {
+          "id": "interior.4",
+          "name": "Original items worth keeping",
+          "guidance": "Some original fixtures carry real value. Photograph and set aside before demo.",
+          "priority": "Low"
+        }
+      ]
+    },
+    {
+      "id": "elec",
+      "order": "06",
+      "title": "Electrical",
+      "diagramZone": null,
+      "items": [
+        {
+          "id": "elec.0",
+          "name": "Converter",
+          "guidance": "Original units are usually dead or unsafe. Assume replacement.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.1",
+          "name": "12V fuse panel and grounds",
+          "guidance": "Corrosion, loose lugs, undersized or missing grounds.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.2",
+          "name": "Wire insulation",
+          "guidance": "Brittle, cracked, or sun-baked insulation anywhere in the runs.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.3",
+          "name": "DIY splices and taps",
+          "guidance": "Twisted-and-taped joints, wire nuts, house wire. All get replaced.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.4",
+          "name": "Shore power cord",
+          "guidance": "Jacket condition, ground pin present and intact.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.5",
+          "name": "Battery box and venting",
+          "guidance": "Secure mounting, vented if lead acid, condition of the tray.",
+          "priority": "Medium"
+        },
+        {
+          "id": "elec.6",
+          "name": "Battery disconnect",
+          "guidance": "Present and functional.",
+          "priority": "Medium"
+        },
+        {
+          "id": "elec.7",
+          "name": "Running and brake lights",
+          "guidance": "Test every function with the tow vehicle connected.",
+          "priority": "High"
+        },
+        {
+          "id": "elec.8",
+          "name": "Interior lighting circuits",
+          "guidance": "Function, and note what you plan to keep.",
+          "priority": "Low"
+        },
+        {
+          "id": "elec.9",
+          "name": "Planned new loads",
+          "guidance": "List every future load now — it drives wire gauge and panel sizing at rough-in.",
+          "priority": "High"
+        }
+      ]
+    },
+    {
+      "id": "lp",
+      "order": "07",
+      "title": "Propane",
+      "diagramZone": null,
+      "items": [
+        {
+          "id": "lp.0",
+          "name": "Tank date and OPD valve",
+          "guidance": "Recertification required every 10 years. OPD (triangular handle) valve required to refill.",
+          "priority": "Critical"
+        },
+        {
+          "id": "lp.1",
+          "name": "Regulator age",
+          "guidance": "10–15 year service life. Replace if the age is unknown.",
+          "priority": "High"
+        },
+        {
+          "id": "lp.2",
+          "name": "Hard lines and flex hoses",
+          "guidance": "Cracking, chafing at pass-throughs, corrosion at fittings.",
+          "priority": "Critical"
+        },
+        {
+          "id": "lp.3",
+          "name": "Manometer leak test",
+          "guidance": "Full system pressure test. Soapy water alone won't find a slow leak.",
+          "priority": "Critical"
+        },
+        {
+          "id": "lp.4",
+          "name": "Stove burners",
+          "guidance": "Light evenly, blue flame, valves not seized.",
+          "priority": "Medium"
+        },
+        {
+          "id": "lp.5",
+          "name": "Furnace (if present)",
+          "guidance": "Ignition, blower, condition of the combustion air path.",
+          "priority": "Medium"
+        },
+        {
+          "id": "lp.6",
+          "name": "Absorption fridge",
+          "guidance": "Often a straight swap to 12V compressor. Yellow residue on the cooling unit means ammonia leak.",
+          "priority": "Medium"
+        },
+        {
+          "id": "lp.7",
+          "name": "Propane detector",
+          "guidance": "These expire. Check the date.",
+          "priority": "Critical"
+        },
+        {
+          "id": "lp.8",
+          "name": "CO detector",
+          "guidance": "Also expires. Check the date.",
+          "priority": "Critical"
+        }
+      ]
+    },
+    {
+      "id": "water2",
+      "order": "08",
+      "title": "Plumbing",
+      "diagramZone": null,
+      "items": [
+        {
+          "id": "water2.0",
+          "name": "Fresh water tank",
+          "guidance": "Cracks, off smell, secure mounting, condition of the fill line.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water2.1",
+          "name": "Supply lines",
+          "guidance": "Old grey poly with crimp fittings should be replaced on sight.",
+          "priority": "High"
+        },
+        {
+          "id": "water2.2",
+          "name": "Freeze damage",
+          "guidance": "Split fittings and cracked valves from a missed winterization.",
+          "priority": "High"
+        },
+        {
+          "id": "water2.3",
+          "name": "Water pump or hand pump",
+          "guidance": "Function, mounting, and noise.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water2.4",
+          "name": "Sink and drain routing",
+          "guidance": "Trap present, drain path, grey water handling.",
+          "priority": "Medium"
+        },
+        {
+          "id": "water2.5",
+          "name": "Water heater (if present)",
+          "guidance": "Anode condition, tank condition, bypass valves.",
+          "priority": "Medium"
+        }
+      ]
+    },
+    {
+      "id": "paper",
+      "order": "09",
+      "title": "Paperwork & weight",
+      "diagramZone": null,
+      "items": [
+        {
+          "id": "paper.0",
+          "name": "VIN plate",
+          "guidance": "Legible and matching the title. A missing plate is a real registration problem.",
+          "priority": "Critical"
+        },
+        {
+          "id": "paper.1",
+          "name": "Title status",
+          "guidance": "Clean title in hand, matching the VIN.",
+          "priority": "Critical"
+        },
+        {
+          "id": "paper.2",
+          "name": "GVWR vs. planned build",
+          "guidance": "13-footers have very little payload. Budget cabinetry, battery, water, and gear before designing.",
+          "priority": "High"
+        },
+        {
+          "id": "paper.3",
+          "name": "Current scale weight",
+          "guidance": "Weigh it as-is if you can, so you know your starting point.",
+          "priority": "Medium"
+        },
+        {
+          "id": "paper.4",
+          "name": "Tongue weight",
+          "guidance": "Should land around 10–15% of total. Decides where heavy items can go.",
+          "priority": "Medium"
+        },
+        {
+          "id": "paper.5",
+          "name": "Photo documentation",
+          "guidance": "Photograph everything, including wiring and propane routing, before any demolition.",
+          "priority": "High"
+        }
+      ]
+    }
+  ]
+}
