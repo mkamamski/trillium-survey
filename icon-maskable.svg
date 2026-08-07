@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Same mark, pulled into the 80% safe zone so Android can crop it to any
+       shape (circle, squircle, rounded square) without clipping the trailer. -->
+  <rect width="512" height="512" fill="#2E5F68"/>
+  <path d="M 133.6 324.4 L 133.6 249.664 Q 133.6 186.16 185.673 186.16
+           L 326.327 186.16 Q 378.4 186.16 378.4 249.664 L 378.4 324.4
+           Q 378.4 337.36 362.56 337.36 L 149.44 337.36 Q 133.6 337.36 133.6 324.4 Z" fill="#F7EFDF"/>
+  <rect x="165.424" y="211.864" width="97.92" height="39.312" rx="5.76" fill="#2E5F68"/>
+  <rect x="133.6" y="261.184" width="244.8" height="7.2" fill="#C2652A"/>
+  <path d="M 133.6 316.192 L 83.2 347.44" stroke="#D9A227" stroke-width="10.8" stroke-linecap="round" fill="none"/>
+  <circle cx="80.32" cy="348.88" r="7.92" fill="#D9A227"/>
+  <circle cx="256" cy="338.8" r="21.6" fill="#D9A227"/>
+  <circle cx="256" cy="338.8" r="7.344" fill="#2E5F68"/>
+</svg>

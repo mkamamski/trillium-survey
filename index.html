@@ -2,6 +2,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2E5F68">
 <title>Trillium 1300 — Condition Survey</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trillium">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Karla:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet">
@@ -197,9 +203,11 @@ main{padding:6px 0 20px}
 .detail{display:grid;grid-template-columns:1fr 130px;gap:8px;margin-top:10px;max-width:520px}
 .detail[hidden]{display:none}
 @media(max-width:520px){.detail{grid-template-columns:1fr}}
-.detail input{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:10px 12px;font:inherit;font-size:.92rem;width:100%;min-width:0}
-.detail input::placeholder{color:var(--ink-3)}
-.detail input:focus{border-color:var(--teal);outline:none}
+.detail input,.detail textarea{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:10px 12px;font:inherit;font-size:.92rem;width:100%;min-width:0}
+.detail input::placeholder,.detail textarea::placeholder{color:var(--ink-3)}
+.detail input:focus,.detail textarea:focus{border-color:var(--teal);outline:none}
+/* findings run long — the box grows with the text instead of hiding it */
+.noteIn{resize:none;overflow:hidden;line-height:1.45;min-height:42px;display:block}
 .item[data-s]{border-left:3px solid transparent;padding-left:14px;margin-left:-17px}
 .item[data-s="sound"]{border-left-color:var(--sound)}
 .item[data-s="serviceable"]{border-left-color:var(--serviceable)}
@@ -261,6 +269,33 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 .xferActs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .xferMsg{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--teal);margin-top:11px;min-height:1em}
 
+/* ─────────── RESUME BANNER ─────────── */
+.resume{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:14px 18px;margin:24px 0 0}
+.resume[hidden]{display:none}
+.resumeTxt{flex:1 1 auto;min-width:0;font-size:.94rem;color:var(--ink-2)}
+.resumeTxt b{color:var(--ink);font-weight:700}
+.resumeActs{display:flex;gap:8px;flex:0 0 auto}
+
+/* ─────────── THUMB BAR ─────────── */
+/* Fixed to the bottom because that is where a thumb actually is when you are
+   holding a phone one-handed under a trailer. */
+.thumbBar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:rgba(251,245,234,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.thumbBar[hidden]{display:none}
+.thumbIn{max-width:var(--maxw);margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.thumbStat{flex:1 1 auto;min-width:0;font-size:.78rem;color:var(--ink-3);font-weight:600;letter-spacing:.03em}
+.thumbStat b{color:var(--ink);font-weight:700}
+.thumbUnsaved{color:var(--failed);font-weight:700}
+.thumbUnsaved:not(.on){display:none}
+#nextUngraded{flex:0 0 auto;background:var(--teal);color:var(--cream);border-color:var(--teal);padding:11px 20px}
+#nextUngraded:hover:not(:disabled){background:var(--teal-d);border-color:var(--teal-d)}
+#nextUngraded:disabled{background:none;color:var(--ink-3);border-color:var(--line);cursor:default}
+/* keep the footer clear of the fixed bar */
+.app{padding-bottom:64px}
+
+/* the row you were just sent to, so it is obvious where you landed */
+@keyframes landed{0%{background:rgba(217,162,39,.28)}100%{background:transparent}}
+.item.flash{animation:landed 1.6s ease-out}
+
 .empty{color:var(--ink-3);font-size:.95rem;padding:28px 0;text-align:center;letter-spacing:.04em}
 .empty[hidden]{display:none}
 .boot{color:var(--ink-3);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:60px 20px;text-align:center}
@@ -269,7 +304,10 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 
 @media print{
   body{background:#fff;color:#000;font-size:10pt}
-  .rail,.chips,.acts,.chev,.st:not(.on),.mapCard,.xfer,.lock,.addShot,.lightbox{display:none!important}
+  .rail,.chips,.acts,.chev,.st:not(.on),.mapCard,.xfer,.lock,.addShot,.lightbox,
+  .thumbBar,.resume{display:none!important}
+  .app{padding-bottom:0}
+  .noteIn{height:auto!important;overflow:visible!important}
   .hero{background:#fff!important;color:#000!important;border-bottom:1px solid #000;padding:0 0 14px}
   .hero h1,.hero h1 span,.lede,.tally,.tally b{color:#000!important}
   .sec,.sec.closed .secBody{display:block!important}
@@ -363,6 +401,13 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 </nav>
 
 <main class="wrap">
+  <div class="resume" id="resume" hidden>
+    <span class="resumeTxt" id="resumeTxt"></span>
+    <span class="resumeActs">
+      <button class="btn" id="resumeGo">Jump there</button>
+      <button class="btn ghost" id="resumeNo">Dismiss</button>
+    </span>
+  </div>
   <section class="scope" id="scope" hidden>
     <h3>What this changes</h3>
     <div class="scopeSub">Updates as you grade</div>
@@ -397,6 +442,13 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
     </div>
   </div>
 </footer>
+
+<div class="thumbBar" id="thumbBar" hidden>
+  <div class="thumbIn">
+    <div class="thumbStat"><b id="thumbCount">0 of 84</b><span class="thumbUnsaved" id="thumbUnsaved"></span></div>
+    <button class="btn" id="nextUngraded">Next ungraded</button>
+  </div>
+</div>
 </div>
 
 <div class="lightbox" id="lightbox" hidden>
@@ -428,7 +480,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 const CFG   = window.TRILLIUM_CONFIG || {};
 const SLUG  = CFG.surveySlug || "trillium-1300";
 const POLL  = 5000;
-const PASS_KEY = "trillium:pass", NAME_KEY = "trillium:name";
+const PASS_KEY = "trillium:pass", NAME_KEY = "trillium:name", POS_KEY = "trillium:pos";
 
 let sb = null;
 let DOC = null, SECTIONS = [], STATES = [], SMAP = {};
@@ -443,6 +495,10 @@ let lastSig = "";
 let pollTimer = null;
 
 const pending = new Map();  // checkpointId -> debounce timer, marks local-newer
+const failedWrites = new Set();   // writes that errored and are being retried
+
+let lastPos = null;         // last checkpoint touched, for Next and Resume
+let wakeLock = null;
 
 const FILTERS=[
   {k:"all",label:"All"},
@@ -521,10 +577,12 @@ function build(){
       row.appendChild(states);
 
       const det=el("div","detail");det.hidden=true;
-      const note=document.createElement("input");
-      note.type="text";note.placeholder="What you found";note.setAttribute("aria-label","Notes for "+it.name);
-      note.oninput=()=>patch(k,{note:note.value},true);
+      const note=document.createElement("textarea");
+      note.className="noteIn";note.rows=1;note.placeholder="What you found";
+      note.setAttribute("aria-label","Notes for "+it.name);
+      note.oninput=()=>{grow(note);patch(k,{note:note.value},true);};
       const cost=document.createElement("input");
+      cost.className="costIn";
       cost.type="text";cost.inputMode="decimal";cost.placeholder="Est. $";cost.setAttribute("aria-label","Estimated cost for "+it.name);
       cost.oninput=()=>{patch(k,{costEstimate:parseCost(cost.value)},true);refresh(true);};
       det.append(note,cost);
@@ -566,6 +624,106 @@ function goto(id){
   s.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
+/* ─────────── working through 84 of them ─────────── */
+
+function grow(ta){
+  if(!ta)return;
+  ta.style.height="auto";
+  ta.style.height=Math.max(ta.scrollHeight,42)+"px";
+}
+
+function allIds(){
+  const a=[];
+  SECTIONS.forEach(s=>s.items.forEach(i=>a.push(i.id)));
+  return a;
+}
+function lookup(id){
+  for(const s of SECTIONS){
+    const it=s.items.find(i=>i.id===id);
+    if(it)return {item:it,sec:s};
+  }
+  return null;
+}
+
+function markPos(k){
+  lastPos=k;
+  try{localStorage.setItem(POS_KEY,k);}catch(e){}
+}
+
+/* Next ungraded, wrapping around, and respecting the active filter — if you
+   are in "Critical only" you want the next ungraded critical, not to be thrown
+   somewhere you cannot see. */
+function nextUngraded(after){
+  const ids=allIds();
+  if(!ids.length)return null;
+  const at=after?ids.indexOf(after):-1;
+  for(let i=1;i<=ids.length;i++){
+    const id=ids[(at+i+ids.length)%ids.length];
+    if(rec[id]&&rec[id].state)continue;
+    const row=document.querySelector('.item[data-k="'+CSS.escape(id)+'"]');
+    if(!row||row.hidden)continue;
+    return id;
+  }
+  return null;
+}
+
+function jumpTo(id){
+  const row=document.querySelector('.item[data-k="'+CSS.escape(id)+'"]');
+  if(!row)return;
+  const sec=row.closest(".sec");
+  if(sec)sec.classList.remove("closed");
+  markPos(id);
+  row.scrollIntoView({behavior:"smooth",block:"center"});
+  row.classList.remove("flash");
+  void row.offsetWidth;              // restart the animation if it is replayed
+  row.classList.add("flash");
+  setTimeout(()=>row.classList.remove("flash"),1700);
+  updateBar();
+}
+
+function updateBar(){
+  const bar=$("thumbBar");
+  if(!bar||bar.hidden)return;
+  const graded=Object.values(rec).filter(r=>r&&r.state).length;
+  $("thumbCount").textContent=graded+" of "+TOTAL;
+  const u=$("thumbUnsaved");
+  u.textContent=failedWrites.size?" · "+failedWrites.size+" unsaved":"";
+  u.classList.toggle("on",failedWrites.size>0);
+  const btn=$("nextUngraded");
+  const nx=nextUngraded(lastPos);
+  btn.disabled=!nx;
+  btn.textContent=nx?"Next ungraded":(graded>=TOTAL?"All graded":"None left here");
+}
+
+/* Offer to pick up where you stopped, rather than dumping you at checkpoint 1 */
+function offerResume(){
+  const banner=$("resume");
+  let saved=null;
+  try{saved=localStorage.getItem(POS_KEY);}catch(e){}
+  if(!saved)return;
+  const found=lookup(saved);
+  if(!found)return;
+  lastPos=saved;
+  if(allIds()[0]===saved)return;     // already at the top, nothing to offer
+  $("resumeTxt").innerHTML="Pick up where you left off — <b>"+esc(found.item.name)+"</b> in "+esc(found.sec.title)+".";
+  banner.hidden=false;
+  $("resumeGo").onclick=()=>{banner.hidden=true;jumpTo(saved);};
+  $("resumeNo").onclick=()=>{banner.hidden=true;};
+}
+
+/* Phones sleep every 30s. Over 84 checkpoints with dirty hands that is misery.
+   Some browsers only grant this off a user gesture, so we retry on the first
+   real tap as well as at unlock. Failure is silent by design — a survey that
+   works is worth more than a lecture about an optional API. */
+async function keepAwake(){
+  try{
+    if(!("wakeLock" in navigator)||wakeLock||document.hidden)return;
+    wakeLock=await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release",()=>{wakeLock=null;});
+  }catch(e){}
+}
+addEventListener("pointerdown",()=>{if(!$("app").hidden)keepAwake();},{passive:true});
+
 /* ─────────── writes ─────────── */
 
 /* Optimistic: paint immediately, push after a beat. The checkpoint sits in
@@ -578,11 +736,22 @@ function patch(k,fields,quiet){
   r.updatedBy=name||r.updatedBy||"";
   r.updatedAt=Date.now();
 
+  markPos(k);
   clearTimeout(pending.get(k));
-  status("sync","Saving");
   pending.set(k,setTimeout(()=>push(k),500));
+  syncStatus();
 
   if(!quiet)refresh();
+}
+
+/* Three states worth telling apart: everything landed, something is in flight,
+   and something actually failed and is being retried. Only the third is worth
+   alarming anyone about. */
+function syncStatus(){
+  if(failedWrites.size)status("off",failedWrites.size+" unsaved");
+  else if(pending.size)status("sync","Saving");
+  else status("ok","Synced");
+  updateBar();
 }
 
 async function push(k){
@@ -597,16 +766,24 @@ async function push(k){
       p_updated_at:null           // let Postgres stamp it; phone clocks drift
     });
     pending.delete(k);
-    if(!pending.size)status("ok","Synced");
+    failedWrites.delete(k);
+    syncStatus();
   }catch(e){
     /* Bad signal in a driveway is the normal case, not the exception. Keep the
        checkpoint in `pending` — that both blocks the poller from overwriting
        the unsaved edit and marks it for another attempt. */
     console.error("upsert failed, will retry",k,e);
-    status("off","Retrying");
+    failedWrites.add(k);
     pending.set(k,setTimeout(()=>push(k),4000));
+    syncStatus();
   }
 }
+
+/* Closing the tab with work that never reached Postgres is the one way to
+   actually lose a grade, so say so. */
+addEventListener("beforeunload",e=>{
+  if(pending.size||failedWrites.size){e.preventDefault();e.returnValue="";}
+});
 
 /* ─────────── reads ─────────── */
 
@@ -806,13 +983,18 @@ function refresh(costOnly){
 
       const det=row.querySelector(".detail");
       det.hidden=!r.state||r.state==="na";
-      const ins=det.querySelectorAll("input");
-      ins.forEach((inp,n)=>{
-        /* never clobber what someone is actively typing */
-        if(inp===document.activeElement)return;
-        const v=n===0?(r.note||""):(r.costEstimate==null?"":String(r.costEstimate));
-        if(inp.value!==v)inp.value=v;
-      });
+      const noteIn=det.querySelector(".noteIn"),costIn=det.querySelector(".costIn");
+      /* never clobber what someone is actively typing */
+      if(noteIn!==document.activeElement){
+        const v=r.note||"";
+        if(noteIn.value!==v)noteIn.value=v;
+      }
+      /* scrollHeight is 0 while hidden, so only size it once it is on screen */
+      if(!det.hidden)grow(noteIn);
+      if(costIn!==document.activeElement){
+        const v=r.costEstimate==null?"":String(r.costEstimate);
+        if(costIn.value!==v)costIn.value=v;
+      }
 
       renderShots(row.querySelector(".shots"),k,r);
 
@@ -901,6 +1083,8 @@ function refresh(costOnly){
     }
     $("costTotal").textContent=money(costs);
   }
+
+  updateBar();
 }
 
 /* ─────────── report ─────────── */
@@ -1037,8 +1221,17 @@ $("xferRun").onclick=async()=>{
 function startPolling(){
   clearInterval(pollTimer);
   pollTimer=setInterval(tick,POLL);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick();});
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden)return;
+    tick();
+    keepAwake();                    // the lock is dropped whenever you tab away
+  });
 }
+
+$("nextUngraded").onclick=()=>{
+  const id=nextUngraded(lastPos);
+  if(id)jumpTo(id);
+};
 
 async function enter(p,remember){
   pass=p;
@@ -1048,12 +1241,15 @@ async function enter(p,remember){
   }catch(e){}
   $("lock").hidden=true;
   $("app").hidden=false;
+  $("thumbBar").hidden=false;
   try{name=localStorage.getItem(NAME_KEY)||"";}catch(e){}
   whoIn.value=name;
   await pullAll();
   const v=await rpc("survey_rev");
   lastSig=v.n+":"+v.last+":"+v.photos;
-  status("ok","Synced");
+  syncStatus();
+  offerResume();
+  keepAwake();
   startPolling();
 }
 
@@ -1106,4 +1302,10 @@ $("lockForm").onsubmit=async e=>{
   }
   $("passIn").focus();
 })();
+
+/* Installable + usable with no signal. Registered last so a failure here can
+   never stop the survey itself from booting. */
+if("serviceWorker" in navigator&&location.protocol==="https:"){
+  addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});
+}
 </script>
