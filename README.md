@@ -133,10 +133,18 @@ Two rules the service worker follows, both deliberate:
 - **Supabase is never intercepted.** Grades must be live or fail loudly. A
   cached survey response would be worse than an error.
 
-Note that cross-origin `<script>` and `<link rel=stylesheet>` need
-`crossorigin="anonymous"` to be cacheable at all — without it they come back
-opaque and a service worker cannot store them. That is why those two tags carry
-it, and why the Supabase client is also precached by URL at install.
+Two things here were learned the hard way and are easy to undo by accident:
+
+- **Manifest icons must be PNG.** Safari has no SVG icon support, and when the
+  manifest advertised SVG icons, iOS "Add to Home Screen" ran through its whole
+  flow and then silently created nothing — no icon, no error. Confirmed by
+  swapping to PNG. `icon.svg` is still referenced as `rel="icon"` for desktop
+  browsers, which is fine; it just must not be what the manifest offers.
+- **Cross-origin `<script>` and `<link rel=stylesheet>` need
+  `crossorigin="anonymous"` to be cacheable at all.** Without it they come back
+  opaque, `.ok` is false, and a service worker cannot store them. That is why
+  those two tags carry it, and why the Supabase client is also precached by URL
+  at install rather than left to be picked up opportunistically.
 
 ## Photos
 
