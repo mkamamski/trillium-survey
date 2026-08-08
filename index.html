@@ -166,7 +166,14 @@ button{font:inherit}
 
 /* ─────────── SECTIONS ─────────── */
 main{padding:6px 0 20px}
-.sec{border-top:1px solid var(--line);padding:28px 0 4px}
+/* The body is a grid row animated between 0fr and 1fr. display:none cannot be
+   transitioned, and max-height needs a height you do not know in advance —
+   sections here run from 5 items to 17, with note fields that grow as you
+   type. This handles all of that without measuring anything. */
+.sec{border-top:1px solid var(--line);padding:28px 0 4px;
+     display:grid;grid-template-rows:auto 1fr;
+     transition:grid-template-rows .34s cubic-bezier(.4,0,.2,1)}
+.sec.closed{grid-template-rows:auto 0fr}
 .secHead{display:flex;gap:16px;align-items:baseline;cursor:pointer;user-select:none}
 .secNum{font-size:.76rem;color:var(--rust);letter-spacing:.1em;flex:0 0 auto;padding-top:6px;font-weight:700}
 .secTitleWrap{flex:1 1 auto;min-width:0}
@@ -176,8 +183,11 @@ main{padding:6px 0 20px}
 .secCount{font-size:.78rem;color:var(--ink-3);flex:0 0 auto;white-space:nowrap;font-weight:600}
 .chev{flex:0 0 auto;color:var(--ink-3);transition:transform .25s;font-size:.75rem;padding-top:7px}
 .sec.closed .chev{transform:rotate(-90deg)}
-.sec.closed .secBody{display:none}
-.secBody{padding:18px 0 4px}
+/* min-height:0 collapses the content box but not the padding, which would
+   leave a 22px ghost under every closed section — so the padding animates too */
+.secBody{padding:18px 0 4px;overflow:hidden;min-height:0;
+         transition:padding .34s cubic-bezier(.4,0,.2,1)}
+.sec.closed .secBody{padding-top:0;padding-bottom:0}
 
 /* ─────────── ITEMS ─────────── */
 .item{padding:16px 0;border-bottom:1px solid var(--line-soft)}
@@ -312,7 +322,9 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
   .noteIn{height:auto!important;overflow:visible!important}
   .hero{background:#fff!important;color:#000!important;border-bottom:1px solid #000;padding:0 0 14px}
   .hero h1,.hero h1 span,.lede,.tally,.tally b{color:#000!important}
-  .sec,.sec.closed .secBody{display:block!important}
+  /* print every section regardless of which one happens to be open on screen */
+  .sec,.sec[hidden]{display:block!important}
+  .secBody{overflow:visible!important}
   .item[hidden]{display:block!important}
   .scope,.item,.detail input{border-color:#999;background:#fff;color:#000}
   .itemHow,.footNote,.verdict{color:#333}
@@ -554,7 +566,7 @@ function build(){
     head.innerHTML=`<span class="secNum">${esc(sec.order)}</span>
       <div class="secTitleWrap"><h2>${esc(sec.title)}</h2><div class="secBar"></div></div>
       <span class="secCount"></span><span class="chev">▼</span>`;
-    head.onclick=e=>{if(!e.target.closest("button,input"))s.classList.toggle("closed");};
+    head.onclick=e=>{if(!e.target.closest("button,input,textarea"))toggleSection(sec.id);};
     const body=el("div","secBody");
 
     sec.items.forEach(it=>{
@@ -619,11 +631,68 @@ function build(){
     z.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goto(target);}});
   });
 }
+/* ─────────── accordion: one open at a time ─────────── */
+
+const MOTION=matchMedia("(prefers-reduced-motion: reduce)").matches?0:340;
+
+/* Holds `el` at a chosen point on screen while section heights animate.
+   Collapsing a section above the one you just tapped would otherwise drag it
+   out from under your thumb — and since the collapse is animated rather than
+   instant, a single scroll correction cannot fix it. So correct every frame
+   for the length of the transition, easing toward the resting position. */
+function anchor(el,start,end,ms){
+  const t0=performance.now();
+  (function step(){
+    const p=ms?Math.min(1,(performance.now()-t0)/ms):1;
+    const e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;   // easeInOutQuad
+    const aim=start+(end-start)*e;
+    const d=el.getBoundingClientRect().top-aim;
+    if(Math.abs(d)>.5)scrollBy(0,d);
+    if(p<1)requestAnimationFrame(step);
+  })();
+}
+
+/* clear of the sticky rail, which would otherwise cover the heading */
+function railGap(){
+  const r=document.querySelector(".rail");
+  return (r?r.getBoundingClientRect().height:0)+10;
+}
+
+function openOnly(id){
+  const target=$("sec-"+id);
+  if(!target)return null;
+  document.querySelectorAll(".sec").forEach(s=>{if(s!==target)s.classList.add("closed");});
+  target.classList.remove("closed");
+  return target;
+}
+
+function toggleSection(id){
+  const target=$("sec-"+id);
+  if(!target)return;
+  const head=target.querySelector(".secHead");
+  const wasOpen=!target.classList.contains("closed");
+  const pad=railGap();
+  const start=head.getBoundingClientRect().top;   // measure before the reflow
+
+  /* Opening always brings the heading to rest just under the rail: predictable
+     wherever you tapped from, and it gives the section you just opened the
+     whole screen below it. Closing leaves the heading alone unless it would
+     otherwise slide up under the rail. */
+  const end=wasOpen?Math.max(start,pad):pad;
+
+  if(wasOpen)target.classList.add("closed");
+  else openOnly(id);
+
+  anchor(head,start,end,MOTION);
+}
+
 function goto(id){
   const s=$("sec-"+id);
   if(!s)return;
-  s.classList.remove("closed");
-  s.scrollIntoView({behavior:"smooth",block:"start"});
+  const head=s.querySelector(".secHead");
+  const start=head.getBoundingClientRect().top;
+  openOnly(id);
+  anchor(head,start,railGap(),MOTION);
 }
 
 /* ─────────── working through 84 of them ─────────── */
@@ -673,9 +742,15 @@ function jumpTo(id){
   const row=document.querySelector('.item[data-k="'+CSS.escape(id)+'"]');
   if(!row)return;
   const sec=row.closest(".sec");
-  if(sec)sec.classList.remove("closed");
+  const start=row.getBoundingClientRect().top;   // measure before the reflow
+  if(sec)openOnly(sec.dataset.sec);
   markPos(id);
-  row.scrollIntoView({behavior:"smooth",block:"center"});
+
+  /* centre it, but never let it hide under the rail on a short screen */
+  const h=row.getBoundingClientRect().height;
+  const end=Math.max(railGap(),(innerHeight-h)/2);
+  anchor(row,start,end,MOTION);
+
   row.classList.remove("flash");
   void row.offsetWidth;              // restart the animation if it is replayed
   row.classList.add("flash");
@@ -1132,7 +1207,8 @@ $("copyReport").onclick=async function(){
   setTimeout(()=>this.textContent="Copy report",1700);
 };
 $("doPrint").onclick=()=>{
-  document.querySelectorAll(".sec").forEach(s=>s.classList.remove("closed"));
+  /* the print stylesheet forces every section open, so the on-screen accordion
+     state is left alone rather than being flung open behind the dialog */
   window.print();
 };
 $("reset").onclick=async function(){

@@ -8,7 +8,7 @@
  *
  * Supabase is never intercepted. Survey data must never come from a cache. */
 
-const VERSION = "trillium-v4";
+const VERSION = "trillium-v5";
 
 /* The Supabase client and the font CSS are pulled in at install time rather
    than left to be picked up opportunistically. cache.add() fetches them in
