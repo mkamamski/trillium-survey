@@ -8,7 +8,7 @@
  *
  * Supabase is never intercepted. Survey data must never come from a cache. */
 
-const VERSION = "trillium-v2";
+const VERSION = "trillium-v3";
 
 /* The Supabase client and the font CSS are pulled in at install time rather
    than left to be picked up opportunistically. cache.add() fetches them in
@@ -25,7 +25,9 @@ const SHELL = [
   "./checkpoints.json",
   "./manifest.webmanifest",
   "./icon.svg",
+  "./icon-180.png",
   "./icon-192.png",
+  "./icon-512.png",
   SUPABASE_JS,
   FONT_CSS
 ];

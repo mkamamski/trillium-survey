@@ -1,0 +1,25 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trillium Plain Test</title>
+<!-- DIAGNOSTIC PAGE — temporary, delete once Add to Home Screen is sorted.
+     Deliberately minimal: no web app manifest, no service worker registration,
+     no Supabase, no fonts. Only the Apple meta tags.
+
+     If Add to Home Screen works HERE but not on the real survey, the manifest
+     is what iOS is choking on. If it fails here too, the cause is something
+     lower down (the service worker, or the device). -->
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PlainTest">
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#2E5F68;color:#F7EFDF;
+       display:flex;min-height:100vh;align-items:center;justify-content:center;padding:32px;line-height:1.6}
+  div{max-width:30ch}
+  h1{font-size:1.5rem;margin:0 0 12px}
+  code{background:rgba(255,255,255,.14);padding:2px 6px;border-radius:4px}
+</style>
+<div>
+  <h1>Plain test page</h1>
+  <p>No manifest. No service worker. Just the Apple tags.</p>
+  <p>Share → <b>Add to Home Screen</b>. It should appear as <code>PlainTest</code>.</p>
+</div>
