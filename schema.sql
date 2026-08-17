@@ -312,6 +312,66 @@ begin
   return json_build_object('ok', true);
 end $$;
 
+-- ─────────────────────────── CI ───────────────────────────
+
+-- Continuous integration needs to answer one question before a project page is
+-- allowed to merge: "does this edit delete an item id that someone has already
+-- ticked?" Answering it needs database access, and giving a CI runner the
+-- survey passphrase would hand it read/write over every grade, note and photo.
+--
+-- So CI gets its own credential and its own function. `ci_hash` unlocks exactly
+-- one thing: a list of opaque item ids and whether they are ticked. No grades,
+-- no notes, no costs, no photos. Leaking it costs you the knowledge that
+-- "part.pump-4008" exists.
+--
+-- Set it separately from the real passphrase:
+--   update public.surveys
+--      set ci_hash = extensions.crypt('some other phrase', extensions.gen_salt('bf', 10))
+--    where slug = 'trillium-1300';
+alter table public.surveys add column if not exists ci_hash text;
+
+create or replace function public.assert_pass_or_ci(p_slug text, p_pass text)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  if not exists (
+    select 1 from public.surveys
+    where slug = p_slug
+      and (pass_hash = crypt(p_pass, pass_hash)
+        or (ci_hash is not null and ci_hash = crypt(p_pass, ci_hash)))
+  ) then
+    perform pg_sleep(0.5);
+    raise exception 'Wrong passphrase' using errcode = '28000';
+  end if;
+end $$;
+
+revoke all on function public.assert_pass_or_ci(text, text) from public, anon, authenticated;
+
+-- Deliberately the narrowest possible payload. Accepts the survey passphrase
+-- too, so a human can run the same check locally without a second credential.
+create or replace function public.project_item_ids(p_slug text, p_pass text)
+returns json
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare v json;
+begin
+  perform public.assert_pass_or_ci(p_slug, p_pass);
+  select coalesce(json_agg(json_build_object(
+           'project', project_slug,
+           'item',    item_id,
+           'checked', checked,
+           'by',      updated_by
+         ) order by project_slug, item_id), '[]'::json)
+    into v
+    from public.project_items where survey_slug = p_slug;
+  return v;
+end $$;
+
 -- ─────────────────────────── photos ───────────────────────────
 
 -- Metadata plus thumbnails only. Full-size bytes are never in this payload.
@@ -408,6 +468,7 @@ grant execute on function public.survey_photo_add(text, text, text, text, text, 
 grant execute on function public.survey_photo_del(text, text, uuid)                 to anon, authenticated;
 grant execute on function public.project_items_all(text, text)                      to anon, authenticated;
 grant execute on function public.project_set(text, text, text, text, boolean, text) to anon, authenticated;
+grant execute on function public.project_item_ids(text, text)                       to anon, authenticated;
 
 -- ─────────────────────────── create the survey ───────────────────────────
 -- CHANGE THE PASSPHRASE on the next line before running this file.
