@@ -1,3 +1,4 @@
+<html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2E5F68">
@@ -52,6 +53,11 @@
   --fs-1:clamp(2.4rem,6.4vw,4.2rem);
   --fs-2:clamp(1.3rem,2.6vw,1.8rem);
   --maxw:1060px;
+
+  /* project pages read as a document rather than a control panel, so they
+     get a narrower measure than the survey's two-column layout */
+  --maxw-doc:820px;
+  --tabh:54px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -291,7 +297,9 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 /* ─────────── THUMB BAR ─────────── */
 /* Fixed to the bottom because that is where a thumb actually is when you are
    holding a phone one-handed under a trailer. */
-.thumbBar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:rgba(251,245,234,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+/* sits directly on top of the tab bar, which is the bottom-most fixed thing
+   and the one that owns the safe-area inset */
+.thumbBar{position:fixed;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom));z-index:90;background:rgba(251,245,234,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
 .thumbBar[hidden]{display:none}
 .thumbIn{max-width:var(--maxw);margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
 .thumbStat{flex:1 1 auto;min-width:0;font-size:.78rem;color:var(--ink-3);font-weight:600;letter-spacing:.03em}
@@ -301,8 +309,10 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 #nextUngraded{flex:0 0 auto;background:var(--teal);color:var(--cream);border-color:var(--teal);padding:11px 20px}
 #nextUngraded:hover:not(:disabled){background:var(--teal-d);border-color:var(--teal-d)}
 #nextUngraded:disabled{background:none;color:var(--ink-3);border-color:var(--line);cursor:default}
-/* keep the footer clear of the fixed bar */
-.app{padding-bottom:64px}
+/* keep the footer clear of the fixed bars: tab bar always, thumb bar on the
+   survey route only */
+.app{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 12px)}
+.app.hasThumb{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 64px)}
 
 /* the row you were just sent to, so it is obvious where you landed */
 @keyframes landed{0%{background:rgba(217,162,39,.28)}100%{background:transparent}}
@@ -312,13 +322,227 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 .empty[hidden]{display:none}
 .boot{color:var(--ink-3);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:60px 20px;text-align:center}
 
+/* ═══════════════ PROJECT PAGES ═══════════════
+   A parallel area to the survey: "how do we do this job" rather than "what
+   condition is this in". Everything below consumes the survey's tokens — the
+   standalone draft declared its own cool green-teal palette and an
+   Archivo + IBM Plex Mono pairing, both of which fought the app. Only
+   #2E5F68 (--teal) survived the reconciliation unchanged. Monospace in
+   particular is the thing this app deliberately moved away from; small-label
+   type here is letterspaced Karla, same as .eyebrow and .fbtn. */
+
+.view[hidden]{display:none}
+
+/* ── bottom tab bar ──
+   Bottom rather than a header switcher because the whole app is used
+   one-handed, outdoors, holding a phone — the same reasoning that already put
+   "Next ungraded" down here. The top of a phone is the hardest place to reach
+   with a thumb, and a header switcher would also have to compete with the
+   survey's sticky .rail. Two tabs, full-width targets, current area carried by
+   both fill and label weight so it survives sunlight and colour-blindness.
+   Real <a href="#/..."> elements, so keyboard, middle-click and history all
+   work without any JS. */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:95;display:flex;
+      background:rgba(251,245,234,.97);backdrop-filter:blur(10px);
+      border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs[hidden]{display:none}
+.tab{flex:1 1 0;min-width:0;height:var(--tabh);display:flex;align-items:center;justify-content:center;gap:8px;
+     text-decoration:none;color:var(--ink-3);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+     border-top:2px solid transparent;margin-top:-1px;transition:color .16s,border-color .16s}
+.tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.tab[aria-current]{color:var(--teal);border-top-color:var(--teal)}
+.tab:hover{color:var(--ink-2)}
+.tab[aria-current]:hover{color:var(--teal)}
+
+/* ── project header ── */
+.phead{background:var(--teal);color:var(--cream);padding:30px 0 28px}
+.phead .wrap{max-width:var(--maxw-doc)}
+.phead .eyebrow{color:var(--gold)}
+.phead h1{font-size:clamp(1.8rem,5.6vw,2.7rem);margin:.2em 0 .3em;color:var(--cream)}
+.phead p{margin:0;max-width:52ch;color:var(--cream-2);font-size:1rem}
+.pback{display:inline-flex;align-items:center;gap:6px;color:var(--cream-2);text-decoration:none;
+       font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:14px}
+.pback:hover{color:var(--cream)}
+.pchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+.pchip{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+       padding:5px 12px;border-radius:100px;border:1px solid rgba(247,239,223,.28);color:var(--cream-2)}
+.pchip[data-t="on"]{background:var(--cream);color:var(--teal-d);border-color:var(--cream)}
+.pchip[data-t="warn"]{border-color:var(--gold);color:var(--gold)}
+/* the survey's sync chip, restyled for a teal ground so a failed write is
+   visible on a project page too */
+.phead .sync{color:var(--cream-2);margin-top:18px}
+/* the survey hides this label on narrow screens because its rail is crowded;
+   a project header has room, and a bare dot says nothing */
+.phead .sync span{display:inline!important}
+
+/* ── section shell ── */
+.pbody{max-width:var(--maxw-doc);margin:0 auto;padding:8px 20px 40px}
+.psec{padding:32px 0 6px;border-top:1px solid var(--line)}
+.psec:first-child{border-top:0}
+.psecHead{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.psecHead h2{font-size:1.3rem}
+.psecNum{font-size:.74rem;color:var(--rust);letter-spacing:.1em;flex:0 0 auto;font-weight:700}
+.psecSub{color:var(--ink-2);font-size:.94rem;margin:0 0 20px;max-width:62ch}
+.psecSub em{font-style:normal;font-weight:700;color:var(--ink)}
+
+/* ── signature diagram ──
+   A per-project slot, not a diagram engine. The .pth-* rules below belong to
+   the water schematic specifically; another project's drawing brings its own
+   block. Kept here rather than in projects.js so the data file stays data. */
+.pdiag{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 14px 12px;overflow-x:auto}
+.pdiag svg{display:block;width:100%;height:auto}
+.pkey{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
+      font-size:.68rem;color:var(--ink-3);letter-spacing:.05em;font-weight:600}
+.pkey span{display:flex;align-items:center;gap:7px}
+.pkey i{width:16px;height:0;border-top:2px solid var(--teal);flex:0 0 auto}
+.pkey i[data-k="line-dashed"]{border-top:2px dashed var(--teal-l)}
+.pkey i[data-k="dot"]{width:9px;height:9px;border-radius:50%;background:var(--gold);border:0}
+.pkey i[data-k="none"]{display:none}
+
+/* water project schematic */
+.pth-box{fill:var(--card);stroke:var(--teal);stroke-width:1.5}
+.pth-box.hot{fill:var(--inset);stroke-width:2.4}
+.pth-box.gone{fill:var(--paper);stroke:var(--ink-3);stroke-width:1.2;stroke-dasharray:4 3}
+.pth-node{fill:var(--card);stroke:var(--teal);stroke-width:1.5}
+.pth-line{fill:none;stroke:var(--teal);stroke-width:2}
+.pth-line.city{stroke:var(--teal-l);stroke-dasharray:6 4}
+.pth-t{font-family:'Karla',sans-serif;font-size:12.5px;font-weight:700;fill:var(--ink)}
+.pth-t.dim{fill:var(--ink-3)}
+.pth-s{font-family:'Karla',sans-serif;font-size:9.5px;font-weight:700;fill:var(--ink-3);letter-spacing:.08em}
+.pth-cv{fill:var(--gold)}
+.pth-cvT{font-family:'Karla',sans-serif;font-size:9px;font-weight:700;fill:#9A6B12;letter-spacing:.04em}
+
+/* ── notes: three levels, mapped onto the survey's severity ramp ──
+   info → teal, key → gold (= serviceable), stop → burgundy (= failed).
+   "stop" sits at failed rather than repair on purpose: the things wearing it
+   are burst-tank and blown-fitting warnings, the same weight as a failed
+   critical checkpoint. */
+.pnote{border-left:3px solid var(--teal);background:var(--card);border:1px solid var(--line);border-left-width:3px;
+       border-radius:0 8px 8px 0;padding:14px 17px;margin:14px 0;font-size:.95rem}
+.pnote[data-l="key"]{border-left-color:var(--serviceable)}
+.pnote[data-l="stop"]{border-left-color:var(--failed)}
+.pnoteTag{display:block;font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;
+          color:var(--teal);margin-bottom:6px}
+.pnote[data-l="key"] .pnoteTag{color:#9A6B12}
+.pnote[data-l="stop"] .pnoteTag{color:var(--failed)}
+.pnote p{margin:.6em 0 0;color:var(--ink-2)}
+.pnote p:first-of-type{margin-top:0}
+
+/* ── parts ── */
+.ptally{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap}
+.ptallyBox{flex:1 1 130px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 15px}
+.ptallyBox b{display:block;font-family:'Fraunces',Georgia,serif;font-size:1.6rem;font-weight:600;line-height:1.1;
+             letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ptallyBox span{font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.pacts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.pgrp{margin:0 0 22px}
+.pgrpHead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px}
+.pgrpHead h3{font-family:'Karla',sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;
+             color:var(--teal);font-weight:700}
+.pgrpHead em{font-style:normal;font-size:.74rem;color:var(--ink-3);font-weight:600;font-variant-numeric:tabular-nums}
+.pparts{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 15px}
+
+/* The whole row is the label, so the tap target is the row rather than a
+   19px box — this gets used with cold or dirty hands. */
+.ppart{display:flex;gap:13px;padding:13px 0;border-top:1px solid var(--line);align-items:flex-start;cursor:pointer}
+.ppart:first-child{border-top:0}
+.pcb{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.pbox{flex:0 0 auto;width:21px;height:21px;margin-top:2px;border:1.6px solid var(--ink-3);background:var(--card);
+      border-radius:5px;position:relative;transition:background .16s,border-color .16s}
+.pbox::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+             border:solid var(--cream);border-width:0 2.2px 2.2px 0;transform:rotate(42deg) scale(0);transition:transform .15s}
+.pcb:checked + .pbox{background:var(--teal);border-color:var(--teal)}
+.pcb:checked + .pbox::after{transform:rotate(42deg) scale(1)}
+.pcb:focus-visible + .pbox{outline:2px solid var(--teal);outline-offset:2px}
+.ptxt{flex:1 1 auto;min-width:0}
+.pname{font-weight:700;font-size:.99rem}
+.pnote2{color:var(--ink-2);font-size:.88rem;margin-top:2px}
+.pprice{flex:0 0 auto;font-size:.88rem;padding-top:1px;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+.pqty{color:var(--ink-3);font-weight:600}
+.pbadge{display:inline-block;margin-left:7px;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+        padding:2px 7px;border-radius:100px;vertical-align:1px}
+.pbadge[data-c="quoted"]{background:rgba(217,162,39,.16);color:#7A5310}
+.pbadge[data-c="est"]{background:var(--inset);color:var(--ink-3)}
+.ppart[data-done="1"] .pname{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line)}
+.pwho{font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink-3);margin-top:4px}
+.pwho[hidden]{display:none}
+.pwho b{color:var(--ink-2)}
+
+/* ── sequence ── */
+.pseq{counter-reset:s;list-style:none;padding:0;margin:0}
+.pseq li{counter-increment:s;position:relative;padding:0 0 16px 40px;border-left:1px solid var(--line);margin-left:12px}
+.pseq li:last-child{border-left-color:transparent;padding-bottom:0}
+.pseq li::before{content:counter(s,decimal-leading-zero);position:absolute;left:-12px;top:0;width:24px;height:24px;
+                 border-radius:50%;background:var(--teal);color:var(--cream);font-size:.62rem;font-weight:700;
+                 display:flex;align-items:center;justify-content:center}
+.pseq li[data-done="1"]::before{background:var(--sound)}
+.pstepRow{display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+.pstep b{font-weight:700;display:block;font-size:.99rem}
+.pstep span{color:var(--ink-2);font-size:.9rem;display:block;margin-top:1px}
+.pseq li[data-done="1"] .pstep b{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line)}
+
+/* ── open decisions ──
+   Authored content, not synced state. Resolving one of these means a tank
+   appears in the parts list and a status chip changes — a data-file edit, not
+   a tickbox. A checkbox here could claim "resolved" while the page still
+   showed the open question. */
+.pgate{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--serviceable);
+       border-radius:0 10px 10px 0;padding:16px 18px;margin:12px 0}
+.pgate h4{font-family:'Fraunces',Georgia,serif;margin:0 0 4px;font-size:1.05rem;font-weight:600}
+.pgateWhen{font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:#9A6B12;margin-bottom:7px}
+.pgate p{margin:0;font-size:.93rem;color:var(--ink-2)}
+
+/* ── references ── */
+.pref{display:block;background:var(--card);border:1px solid var(--line);border-radius:8px;
+      padding:14px 16px;margin-bottom:9px;text-decoration:none;color:inherit}
+.pref:hover{border-color:var(--teal)}
+.pref b{display:block;font-weight:700;font-size:.97rem;color:var(--teal)}
+.pref span{display:block;color:var(--ink-2);font-size:.88rem;margin-top:3px}
+.pref em{font-style:normal;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+         color:var(--ink-3);display:block;margin-top:7px}
+
+/* ── projects index: a launcher, not a dashboard ── */
+.plistHead{background:var(--teal);color:var(--cream);padding:30px 0 28px}
+.plistHead .wrap{max-width:var(--maxw-doc)}
+.plistHead .eyebrow{color:var(--gold)}
+.plistHead h1{font-size:clamp(1.8rem,5.6vw,2.7rem);margin:.2em 0 0;color:var(--cream)}
+.plistHead p{margin:14px 0 0;max-width:48ch;color:var(--cream-2);font-size:1rem}
+.plist{max-width:var(--maxw-doc);margin:0 auto;padding:22px 20px 40px;display:grid;gap:10px}
+.pcard{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;
+       padding:16px 18px;text-decoration:none;color:inherit}
+.pcard:hover{border-color:var(--teal)}
+.pcardTop{display:flex;gap:12px;align-items:baseline}
+.pcard h3{font-size:1.12rem;flex:1 1 auto;min-width:0}
+.pcardBlurb{color:var(--ink-2);font-size:.92rem;margin:5px 0 0}
+.pcardMeta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px;
+           font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink-3)}
+.pcardBar{width:64px;height:5px;background:var(--line);border-radius:3px;overflow:hidden;flex:0 0 auto}
+.pcardBar i{display:block;height:100%;background:var(--teal);width:0}
+/* always its own row: as an inline item it wraps and strands its separator */
+.pcardGate{color:#9A6B12;flex:1 0 100%;margin-top:2px}
+.pcard[data-planned]{opacity:.62;cursor:default;border-style:dashed}
+.pcard[data-planned]:hover{border-color:var(--line)}
+
+@media(max-width:560px){
+  .pparts{padding:0 13px}
+  .pprice{font-size:.84rem}
+  .ptallyBox{flex:1 1 92px;padding:10px 12px}
+  .ptallyBox b{font-size:1.35rem}
+  .pbody,.plist{padding-left:16px;padding-right:16px}
+  .pseq li{padding-left:34px}
+}
+
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 @media print{
   body{background:#fff;color:#000;font-size:10pt}
   .rail,.chips,.acts,.chev,.st:not(.on),.mapCard,.xfer,.lock,.addShot,.lightbox,
-  .thumbBar,.resume{display:none!important}
-  .app{padding-bottom:0}
+  .thumbBar,.resume,.tabs,.pacts,.pback,.sync{display:none!important}
+  .app,.app.hasThumb{padding-bottom:0}
+  /* Only the route you are looking at prints. The survey's "force every
+     section open" rules below can't resurrect a hidden view — an ancestor
+     display:none wins over !important on its descendants. */
+  .view[hidden]{display:none!important}
   .noteIn{height:auto!important;overflow:visible!important}
   .hero{background:#fff!important;color:#000!important;border-bottom:1px solid #000;padding:0 0 14px}
   .hero h1,.hero h1 span,.lede,.tally,.tally b{color:#000!important}
@@ -331,6 +555,21 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
   .st.on{border:1px solid #000!important;color:#000!important;background:#fff!important}
   .item{break-inside:avoid}
   .shot{border-color:#999}
+
+  /* project pages — these get printed and carried out to the trailer */
+  .phead,.plistHead{background:#fff!important;color:#000!important;border-bottom:1px solid #000;padding:0 0 12px}
+  .phead h1,.phead p,.plistHead h1,.plistHead p,.phead .eyebrow,.plistHead .eyebrow{color:#000!important}
+  .pchip{border-color:#666!important;color:#000!important;background:#fff!important}
+  .pchip[data-t="on"]{background:#eee!important}
+  /* the schematic scrolls horizontally on screen; on paper it must not clip */
+  .pdiag{overflow:visible!important;border-color:#999;background:#fff;break-inside:avoid}
+  .pdiag svg{min-width:0!important}
+  .pnote,.pgate,.pparts,.pref,.ptallyBox,.pcard{border-color:#999;background:#fff;break-inside:avoid}
+  .ppart,.pseq li,.pgate,.pnote{break-inside:avoid}
+  .pnote p,.pgate p,.psecSub,.pnote2,.pstep span,.pref span{color:#333}
+  .pbox{border-color:#000}
+  .pcb:checked + .pbox{background:#000!important;border-color:#000!important}
+  .pseq li::before{background:#000!important;color:#fff!important}
 }
 </style>
 
@@ -350,6 +589,11 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 </div>
 
 <div class="app" id="app" hidden>
+
+<!-- Views are toggled with [hidden], never destroyed. The survey's DOM stays
+     live behind a project page so refresh() keeps working on it untouched,
+     which is what lets the grading code stay exactly as it was. -->
+<div class="view" id="viewSurvey">
 <header class="hero">
   <div class="wrap heroGrid">
     <div>
@@ -446,16 +690,30 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 
 <footer class="wrap">
   <div class="footIn">
-    <p class="footNote">Grades sync to everyone with the link and the passphrase. Clearing wipes the survey and every photo for all of you, so it asks twice.</p>
+    <p class="footNote">Grades sync to everyone with the link and the passphrase. There is no way to wipe the survey from here — that was removed on purpose.</p>
     <div class="acts">
       <button class="btn" id="copyReport">Copy report</button>
       <button class="btn ghost" id="doPrint">Print</button>
       <button class="btn ghost" id="xferOpen">Import</button>
       <button class="btn ghost" id="lockBtn">Lock</button>
-      <button class="btn warn" id="reset">Clear survey</button>
     </div>
   </div>
 </footer>
+
+</div><!-- /viewSurvey -->
+
+<div class="view" id="viewProjects" hidden>
+  <header class="plistHead">
+    <div class="wrap">
+      <div class="eyebrow">Restoration</div>
+      <h1>Projects</h1>
+      <p>How each job actually gets done. Parts, order of work, and what is still undecided.</p>
+    </div>
+  </header>
+  <div class="plist" id="plist"></div>
+</div>
+
+<div class="view" id="viewProject" hidden></div>
 
 <div class="thumbBar" id="thumbBar" hidden>
   <div class="thumbIn">
@@ -463,6 +721,17 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
     <button class="btn" id="nextUngraded">Next ungraded</button>
   </div>
 </div>
+
+<nav class="tabs" id="tabs" aria-label="Areas">
+  <a class="tab" href="#/survey" data-area="survey">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3.5h9a1.5 1.5 0 0 1 1.5 1.5v14A1.5 1.5 0 0 1 18 20.5H6A1.5 1.5 0 0 1 4.5 19V5A1.5 1.5 0 0 1 6 3.5h3z"/><path d="M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/></svg>
+    Survey
+  </a>
+  <a class="tab" href="#/projects" data-area="projects">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>
+    Projects
+  </a>
+</nav>
 </div>
 
 <div class="lightbox" id="lightbox" hidden>
@@ -480,6 +749,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
+<script src="projects.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    Trillium 1300 — Condition Survey
@@ -502,6 +772,8 @@ let TOTAL = 0;
 
 let rec    = {};            // checkpointId -> record
 let shots  = {};            // checkpointId -> [photo meta]
+let pstate = {};            // projectSlug -> itemId -> {checked, updatedBy, updatedAt}
+let PROJ   = [], PMAP = {}; // project pages, from projects.js
 let pass   = null;
 let name   = "";
 let filter = "all";
@@ -540,11 +812,14 @@ function parseCost(v){
   const n=parseFloat(String(v).replace(/[^0-9.]/g,""));
   return isNaN(n)?null:n;
 }
+/* Every .sync chip, not just the survey's — the project pages carry one too,
+   so a failed write is visible whichever area you happen to be looking at. */
 function status(st,txt){
-  const n=$("sync");
-  if(!n)return;
-  n.dataset.st=st;
-  $("syncTxt").textContent=txt;
+  document.querySelectorAll(".sync").forEach(n=>{
+    n.dataset.st=st;
+    const s=n.querySelector("span");
+    if(s)s.textContent=txt;
+  });
 }
 
 /* ─────────── transport ─────────── */
@@ -831,17 +1106,39 @@ function syncStatus(){
   updateBar();
 }
 
+/* Project writes share `pending` and `failedWrites` with the survey rather than
+   growing a parallel set. That way the sync chip, the "2 unsaved" badge and the
+   beforeunload warning all cover both areas without any extra bookkeeping.
+   Project keys are namespaced "proj:<project>:<item>"; item ids may contain
+   colons, so only the first two separators are structural. */
+const PKEY="proj:";
+function splitPKey(k){
+  const rest=k.slice(PKEY.length), i=rest.indexOf(":");
+  return {project:rest.slice(0,i),item:rest.slice(i+1)};
+}
+
 async function push(k){
-  const r=rec[k]||{};
   try{
-    await rpc("survey_upsert",{
-      p_checkpoint:k,
-      p_state:r.state||null,
-      p_note:r.note||"",
-      p_cost:r.costEstimate===undefined?null:r.costEstimate,
-      p_by:name||"",
-      p_updated_at:null           // let Postgres stamp it; phone clocks drift
-    });
+    if(k.startsWith(PKEY)){
+      const {project,item}=splitPKey(k);
+      const s=(pstate[project]||{})[item]||{};
+      await rpc("project_set",{
+        p_project:project,
+        p_item:item,
+        p_checked:!!s.checked,
+        p_by:name||""             // Postgres stamps the time, as with grades
+      });
+    }else{
+      const r=rec[k]||{};
+      await rpc("survey_upsert",{
+        p_checkpoint:k,
+        p_state:r.state||null,
+        p_note:r.note||"",
+        p_cost:r.costEstimate===undefined?null:r.costEstimate,
+        p_by:name||"",
+        p_updated_at:null           // let Postgres stamp it; phone clocks drift
+      });
+    }
     pending.delete(k);
     failedWrites.delete(k);
     syncStatus();
@@ -849,7 +1146,7 @@ async function push(k){
     /* Bad signal in a driveway is the normal case, not the exception. Keep the
        checkpoint in `pending` — that both blocks the poller from overwriting
        the unsaved edit and marks it for another attempt. */
-    console.error("upsert failed, will retry",k,e);
+    console.error("write failed, will retry",k,e);
     failedWrites.add(k);
     pending.set(k,setTimeout(()=>push(k),4000));
     syncStatus();
@@ -886,21 +1183,48 @@ function groupPhotos(list){
   return g;
 }
 
+/* Wholesale replace, then put back anything still in flight — same rule as
+   applyRecords, just keyed two levels deep. */
+function applyProjects(remote){
+  const next={};
+  for(const proj in remote){
+    next[proj]={};
+    for(const item in remote[proj])next[proj][item]=remote[proj][item];
+  }
+  pending.forEach((_,k)=>{
+    if(!k.startsWith(PKEY))return;
+    const {project,item}=splitPKey(k);
+    const local=(pstate[project]||{})[item];
+    if(local)(next[project]||(next[project]={}))[item]=local;
+  });
+  pstate=next;
+}
+
+const sigOf=v=>v.n+":"+v.last+":"+v.photos+":"+v.pn+":"+v.plast;
+
 async function pullAll(){
-  const [records,photos]=await Promise.all([
+  const [records,photos,projects]=await Promise.all([
     rpc("survey_records"),
-    rpc("survey_photos")
+    rpc("survey_photos"),
+    /* Tolerated separately, not folded into the rejection: unlock awaits this,
+       so an unprovisioned project_items table would otherwise take the whole
+       app down — you could not even sign in to look at the survey. Degrading
+       to "project ticks don't sync" is the right failure. */
+    rpc("project_items_all").catch(e=>{console.error("project state unavailable",e);return null;})
   ]);
   applyRecords(records||{});
   shots=groupPhotos(photos);
+  if(projects)applyProjects(projects);
   refresh();
+  paintProject();
+  renderIndex();
 }
 
 async function tick(){
   if(document.hidden||pending.size)return;
   try{
     const v=await rpc("survey_rev");
-    const sig=v.n+":"+v.last+":"+v.photos;
+    const sig=sigOf(v);
     if(sig!==lastSig){lastSig=sig;await pullAll();}
     if(!pending.size)status("ok","Synced");
   }catch(e){
@@ -1039,6 +1363,18 @@ function renderShots(strip,k,r){
 }
 
 function refresh(costOnly){
+  /* Typing in a cost field changes exactly one number on screen. The full pass
+     below walks all 84 checkpoints and rewrites their DOM, which is a lot of
+     work per keystroke — costOnly was always passed by the cost handler but
+     never read. Nothing else on the page depends on a cost value. */
+  if(costOnly){
+    let c=0;
+    for(const k in rec){const v=rec[k];if(v&&v.costEstimate!=null)c+=v.costEstimate;}
+    const t=$("costTotal");
+    if(t)t.textContent=money(c);
+    return;
+  }
+
   let graded=0,costs=0;
   const counts={sound:0,serviceable:0,repair:0,failed:0,na:0};
   const flags=[];
@@ -1155,13 +1491,420 @@ function refresh(costOnly){
     });
     if(flags.length>10){
       const li=document.createElement("li");
-      li.innerHTML=`<span class="flagDot" style="background:#DDD0B8"></span><span style="color:var(--dim)">+ ${flags.length-10} more flagged</span>`;
+      li.innerHTML=`<span class="flagDot" style="background:#DDD0B8"></span><span style="color:var(--ink-3)">+ ${flags.length-10} more flagged</span>`;
       fl.appendChild(li);
     }
     $("costTotal").textContent=money(costs);
   }
 
   updateBar();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJECT PAGES
+
+   A parallel area to the survey, not a section of it. Routing is hash-based:
+   #/survey, #/projects, #/projects/<slug>.
+
+   Why hash and not the History API with real paths: this is served from
+   GitHub Pages, which has no rewrites. Clean paths would need a 404.html kept
+   byte-identical to index.html, plus a <base href="/"> so that config.js,
+   checkpoints.json, projects.js, the icons, the manifest's "./" scope and the
+   service worker's "./" shell entries still resolve when the browser thinks it
+   is at /projects/water-pressurized. That is a lot of blast radius on the
+   offline machinery for the sake of a prettier URL. The fragment is never sent
+   to the server and the service worker's navigate handler never sees it, so
+   offline behaviour is unchanged. Deep links and Back work either way.
+   ═══════════════════════════════════════════════════════════════ */
+
+const VIEWS={survey:"viewSurvey",projects:"viewProjects",project:"viewProject"};
+let curRoute=null, builtSlug=null;
+const scrollMem={};
+
+function parseHash(){
+  const seg=(location.hash||"").replace(/^#\/?/,"").split("/").filter(Boolean);
+  if(!seg.length||seg[0]==="survey")return {area:"survey"};
+  if(seg[0]==="projects"){
+    if(!seg[1])return {area:"projects"};
+    const p=PMAP[seg[1]];
+    /* unknown or not-yet-written slug falls back to the index rather than a
+       blank screen — a stale link someone was texted still lands somewhere */
+    return (p&&!p.planned)?{area:"project",slug:seg[1]}:{area:"projects"};
+  }
+  return {area:"survey"};
+}
+const routeKey=r=>r.area==="project"?"project:"+r.slug:r.area;
+
+function route(){
+  const r=parseHash();
+  if(curRoute)scrollMem[routeKey(curRoute)]=window.scrollY;
+
+  if(r.area==="project")buildProject(r.slug);
+  if(r.area==="projects")renderIndex();
+  curRoute=r;
+
+  for(const a in VIEWS)$(VIEWS[a]).hidden=(a!==r.area);
+
+  /* a project page keeps the Projects tab lit — it is a level down, not a
+     third place */
+  const lit=r.area==="survey"?"survey":"projects";
+  document.querySelectorAll(".tab").forEach(t=>{
+    if(t.dataset.area===lit)t.setAttribute("aria-current","page");
+    else t.removeAttribute("aria-current");
+  });
+
+  const onSurvey=r.area==="survey";
+  $("thumbBar").hidden=!onSurvey||$("app").hidden;
+  $("app").classList.toggle("hasThumb",onSurvey);
+
+  window.scrollTo(0,scrollMem[routeKey(r)]||0);
+}
+addEventListener("hashchange",route);
+
+/* ─────────── project state ─────────── */
+
+function patchPart(project,item,checked){
+  const p=pstate[project]||(pstate[project]={});
+  p[item]={checked:!!checked,updatedBy:name||"",updatedAt:Date.now()};
+
+  const k=PKEY+project+":"+item;
+  clearTimeout(pending.get(k));
+  pending.set(k,setTimeout(()=>push(k),400));
+  syncStatus();
+  paintProject();
+}
+
+const ticked=(slug,item)=>!!((pstate[slug]||{})[item]||{}).checked;
+const lineTotal=it=>(it.price||0)*(it.qty||1);
+
+function partsBlocks(p){
+  const out=[];
+  (p.sections||[]).forEach(s=>s.blocks.forEach(b=>{if(b.kind==="parts")out.push(b);}));
+  return out;
+}
+
+/* ─────────── project rendering ─────────── */
+
+/* One renderer per block kind. Adding a kind means adding an entry here and
+   using it from projects.js — no template to copy. */
+const BLOCKS={
+
+  /* A slot, deliberately not a diagram engine: the drawing is hand-made per
+     project and arrives as an SVG string (or a function returning an element). */
+  diagram(p,b){
+    const wrap=el("div","pdiag");
+    if(typeof b.svg==="function"){
+      wrap.appendChild(b.svg());
+    }else{
+      wrap.innerHTML=String(b.svg||"").replace("__LABEL__",esc(b.label||""));
+    }
+    if(b.minWidth){
+      const s=wrap.querySelector("svg");
+      if(s)s.style.minWidth=b.minWidth+"px";
+    }
+    if(b.key&&b.key.length){
+      const k=el("div","pkey");
+      b.key.forEach(e=>{
+        const sp=document.createElement("span");
+        const sw=document.createElement("i");
+        sw.dataset.k=e.swatch||"line";
+        sp.append(sw,document.createTextNode(e.text));
+        k.appendChild(sp);
+      });
+      wrap.appendChild(k);
+    }
+    return wrap;
+  },
+
+  notes(p,b){
+    const f=document.createDocumentFragment();
+    (b.items||[]).forEach(n=>{
+      const d=el("div","pnote");
+      d.dataset.l=n.level||"info";
+      d.appendChild(el("span","pnoteTag",n.tag||""));
+      (n.body||[]).forEach(par=>d.appendChild(el("p",null,par)));
+      f.appendChild(d);
+    });
+    return f;
+  },
+
+  parts(p,b,idx){
+    const wrap=el("div","pblock");
+    wrap.dataset.parts=idx;
+
+    const tally=el("div","ptally");
+    tally.innerHTML=
+      `<div class="ptallyBox"><b data-t="spent">$0</b><span>Spent</span></div>
+       <div class="ptallyBox"><b data-t="got">0</b><span>In hand</span></div>
+       <div class="ptallyBox"><b data-t="left">$0</b><span>Still to buy</span></div>`;
+    wrap.appendChild(tally);
+
+    const acts=el("div","pacts");
+    const copy=el("button","btn","Copy shopping list");
+    copy.type="button";
+    copy.onclick=function(){copyShoppingList(p,b,this);};
+    const pr=el("button","btn ghost","Print page");
+    pr.type="button";
+    pr.onclick=()=>window.print();
+    acts.append(copy,pr);
+    wrap.appendChild(acts);
+
+    (b.groups||[]).forEach(g=>{
+      const gd=el("div","pgrp");
+      const gh=el("div","pgrpHead");
+      gh.innerHTML=`<h3>${esc(g.title)}</h3><em data-grp="${esc(g.id)}"></em>`;
+      gd.appendChild(gh);
+      const box=el("div","pparts");
+      g.items.forEach(it=>box.appendChild(partRow(p,it)));
+      gd.appendChild(box);
+      wrap.appendChild(gd);
+    });
+    return wrap;
+  },
+
+  sequence(p,b){
+    const ol=el("ol","pseq");
+    (b.steps||[]).forEach(st=>{
+      const li=document.createElement("li");
+      li.dataset.item="step."+st.id;
+      const lab=el("label","pstepRow");
+      const cb=document.createElement("input");
+      cb.type="checkbox";cb.className="pcb";
+      cb.setAttribute("aria-label",st.title);
+      cb.onchange=()=>patchPart(p.slug,"step."+st.id,cb.checked);
+      const tx=el("div","pstep",`<b>${esc(st.title)}</b><span>${st.detail||""}</span>`);
+      tx.appendChild(Object.assign(el("div","pwho"),{hidden:true}));
+      lab.append(cb,el("span","pbox"),tx);
+      li.appendChild(lab);
+      ol.appendChild(li);
+    });
+    return ol;
+  },
+
+  gates(p,b){
+    const f=document.createDocumentFragment();
+    (b.items||[]).forEach(g=>{
+      f.appendChild(el("div","pgate",
+        `<div class="pgateWhen">Gated on — ${esc(g.gatedOn)}</div>
+         <h4>${esc(g.title)}</h4>
+         <p>${g.body||""}</p>`));
+    });
+    return f;
+  },
+
+  refs(p,b){
+    const f=document.createDocumentFragment();
+    (b.items||[]).forEach(r=>{
+      const a=document.createElement("a");
+      a.className="pref";
+      a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";
+      a.innerHTML=`<b>${esc(r.title)}</b><span>${esc(r.blurb)}</span><em>${esc(r.source)}</em>`;
+      f.appendChild(a);
+    });
+    return f;
+  }
+};
+
+/* The whole row is the <label>, so the tap target is the row and not a 21px
+   box — this gets used with cold hands in bad light. A real
+   <input type="checkbox"> rather than role="checkbox" on a button: native
+   Space handling, native form semantics, and one less thing to get wrong. */
+function partRow(p,it){
+  const id="part."+it.id;
+  const row=el("label","ppart");
+  row.dataset.item=id;
+
+  const cb=document.createElement("input");
+  cb.type="checkbox";cb.className="pcb";
+  /* the <label> is the whole row, so without this a screen reader reads the
+     name, the badge and the note as one run-on string */
+  cb.setAttribute("aria-label",it.name+(it.qty>1?" ×"+it.qty:""));
+  cb.onchange=()=>patchPart(p.slug,id,cb.checked);
+
+  const tx=el("div","ptxt");
+  const nm=el("div","pname",esc(it.name)+(it.qty>1?` <span class="pqty">×${it.qty}</span>`:""));
+  const badge=el("span","pbadge",it.confidence==="quoted"?"quoted":"est.");
+  badge.dataset.c=it.confidence==="quoted"?"quoted":"est";
+  nm.appendChild(badge);
+  tx.appendChild(nm);
+  if(it.note)tx.appendChild(el("div","pnote2",it.note));
+  tx.appendChild(Object.assign(el("div","pwho"),{hidden:true}));
+
+  row.append(cb,el("span","pbox"),tx,el("div","pprice","$"+lineTotal(it).toFixed(2)));
+  return row;
+}
+
+function buildProject(slug){
+  if(builtSlug===slug)return;
+  const host=$("viewProject");
+  host.innerHTML="";
+  builtSlug=null;
+  const p=PMAP[slug];
+  if(!p||!p.sections)return;
+  builtSlug=slug;
+
+  const head=el("header","phead");
+  const w=el("div","wrap");
+  w.innerHTML=
+    `<a class="pback" href="#/projects">‹ All projects</a>
+     <div class="eyebrow">${esc(p.eyebrow||"Project")}</div>
+     <h1>${esc(p.name)}</h1>
+     <p>${p.summary||""}</p>`;
+  if(p.chips&&p.chips.length){
+    const c=el("div","pchips");
+    p.chips.forEach(ch=>{
+      const s=el("span","pchip",ch.label);
+      s.dataset.t=ch.tone||"open";
+      c.appendChild(s);
+    });
+    w.appendChild(c);
+  }
+  const chip=el("div","sync",'<i></i><span>Synced</span>');
+  chip.dataset.st="ok";
+  w.appendChild(chip);
+  head.appendChild(w);
+  host.appendChild(head);
+
+  const body=el("div","pbody");
+  let partsIdx=0;
+  p.sections.forEach((sec,i)=>{
+    const s=el("section","psec");
+    s.id="psec-"+sec.id;
+    s.appendChild(el("div","psecHead",
+      `<span class="psecNum">${String(i+1).padStart(2,"0")}</span><h2>${esc(sec.title)}</h2>`));
+    if(sec.intro)s.appendChild(el("p","psecSub",sec.intro));
+    (sec.blocks||[]).forEach(b=>{
+      const fn=BLOCKS[b.kind];
+      if(!fn){console.warn("unknown block kind",b.kind);return;}
+      const node=fn(p,b,b.kind==="parts"?partsIdx++:0);
+      if(node)s.appendChild(node);
+    });
+    body.appendChild(s);
+  });
+  host.appendChild(body);
+
+  syncStatus();      // the chip we just created starts blank otherwise
+  paintProject();
+}
+
+/* Called on every poll. Only touches state, never rebuilds — a rebuild would
+   drop focus and thrash the DOM every five seconds. */
+function paintProject(){
+  const host=$("viewProject");
+  if(!builtSlug||!host.firstChild)return;
+  const p=PMAP[builtSlug];
+  const st=pstate[builtSlug]||{};
+
+  host.querySelectorAll("[data-item]").forEach(row=>{
+    const s=st[row.dataset.item]||{};
+    const on=!!s.checked;
+    const cb=row.querySelector(".pcb");
+    if(cb&&cb.checked!==on)cb.checked=on;
+    row.dataset.done=on?"1":"0";
+    const who=row.querySelector(".pwho");
+    if(!who)return;
+    if(on&&(s.updatedBy||s.updatedAt)){
+      who.hidden=false;
+      who.innerHTML=(s.updatedBy?"<b>"+esc(s.updatedBy)+"</b> · ":"")+ago(s.updatedAt);
+    }else who.hidden=true;
+  });
+
+  partsBlocks(p).forEach((b,idx)=>{
+    const scope=host.querySelector('.pblock[data-parts="'+idx+'"]');
+    if(!scope)return;
+    let got=0,spent=0,left=0;
+    (b.groups||[]).forEach(g=>{
+      let sum=0;
+      g.items.forEach(it=>{
+        const line=lineTotal(it);
+        sum+=line;
+        if(ticked(builtSlug,"part."+it.id)){got++;spent+=line;}
+        else left+=line;
+      });
+      const em=scope.querySelector('[data-grp="'+CSS.escape(g.id)+'"]');
+      if(em)em.textContent=money(sum);
+    });
+    const set=(t,v)=>{const n=scope.querySelector('[data-t="'+t+'"]');if(n)n.textContent=v;};
+    set("spent",money(spent));
+    set("got",got);
+    set("left",money(left));
+  });
+}
+
+async function copyShoppingList(p,b,btn){
+  const L=[(b.copy&&b.copy.title)||("TRILLIUM 1300 — "+p.name.toUpperCase()+", STILL TO BUY"),""];
+  let total=0;
+  (b.groups||[]).forEach(g=>{
+    const rem=g.items.filter(it=>!ticked(p.slug,"part."+it.id));
+    if(!rem.length)return;
+    L.push(g.title.toUpperCase());
+    rem.forEach(it=>{
+      const line=lineTotal(it);
+      total+=line;
+      L.push("  - "+it.name+(it.qty>1?" ×"+it.qty:"")+"  ~$"+line.toFixed(2));
+    });
+    L.push("");
+  });
+  L.push("Approx total: "+money(total));
+  if(b.copy&&b.copy.footer)L.push(b.copy.footer);
+  try{await navigator.clipboard.writeText(L.join("\n"));btn.textContent="Copied";}
+  catch(e){btn.textContent="Copy failed";}
+  setTimeout(()=>{btn.textContent="Copy shopping list";},1800);
+}
+
+/* ─────────── projects index ─────────── */
+
+function partCounts(p){
+  let total=0,done=0,left=0;
+  partsBlocks(p).forEach(b=>(b.groups||[]).forEach(g=>g.items.forEach(it=>{
+    total++;
+    if(ticked(p.slug,"part."+it.id))done++;
+    else left+=lineTotal(it);
+  })));
+  return {total,done,left};
+}
+
+/* Gating status is already in the data: the warn chip if the project has one,
+   otherwise the count of open decisions. No extra field to keep truthful. */
+function gatingLine(p){
+  const warn=(p.chips||[]).find(c=>c.tone==="warn");
+  if(warn)return warn.label.replace(/&nbsp;/g," ");
+  let n=0;
+  (p.sections||[]).forEach(s=>s.blocks.forEach(b=>{if(b.kind==="gates")n+=b.items.length;}));
+  return n?n+" open decision"+(n===1?"":"s"):"";
+}
+
+function renderIndex(){
+  const host=$("plist");
+  if(!host)return;
+  host.innerHTML="";
+  PROJ.forEach(p=>{
+    const planned=!p.sections;
+    const card=document.createElement(planned?"div":"a");
+    card.className="pcard";
+    if(planned)card.dataset.planned="1";
+    else card.href="#/projects/"+p.slug;
+
+    card.appendChild(el("div","pcardTop",`<h3>${esc(p.name)}</h3>`));
+    if(p.blurb)card.appendChild(el("p","pcardBlurb",p.blurb));
+
+    const meta=el("div","pcardMeta");
+    if(planned){
+      meta.appendChild(el("span",null,"Not written yet"));
+    }else{
+      const c=partCounts(p);
+      const bar=el("div","pcardBar");
+      const fill=document.createElement("i");
+      fill.style.width=(c.total?c.done/c.total*100:0)+"%";
+      bar.appendChild(fill);
+      meta.append(bar,el("span",null,c.done+" of "+c.total+" in hand"));
+      if(c.left)meta.appendChild(el("span",null,"· "+money(c.left)+" to buy"));
+      const g=gatingLine(p);
+      if(g)meta.appendChild(el("span","pcardGate",g));
+    }
+    card.appendChild(meta);
+    host.appendChild(card);
+  });
 }
 
 /* ─────────── report ─────────── */
@@ -1211,19 +1954,11 @@ $("doPrint").onclick=()=>{
      state is left alone rather than being flung open behind the dialog */
   window.print();
 };
-$("reset").onclick=async function(){
-  if(this.dataset.armed){
-    delete this.dataset.armed;this.textContent="Clear survey";
-    try{
-      await rpc("survey_clear");
-      rec={};shots={};lastSig="";
-      refresh();
-    }catch(e){console.error("clear failed",e);status("off","Clear failed");}
-  }else{
-    this.dataset.armed="1";this.textContent="Clear for everyone?";
-    setTimeout(()=>{delete this.dataset.armed;this.textContent="Clear survey";},4000);
-  }
-};
+/* "Clear survey" is gone, button and all. It was the one action here that could
+   destroy work for everyone at once, it is not something we will ever want to do
+   in a driveway, and Postgres holds the only copy of 84 grades and every photo.
+   The function still exists server-side but is no longer granted to `anon`, so
+   it can only be run deliberately from the Supabase SQL editor. */
 $("lockBtn").onclick=()=>{
   try{localStorage.removeItem(PASS_KEY);sessionStorage.removeItem(PASS_KEY);}catch(e){}
   location.reload();
@@ -1319,14 +2054,17 @@ async function enter(p,remember){
   }catch(e){}
   $("lock").hidden=true;
   $("app").hidden=false;
-  $("thumbBar").hidden=false;
   try{name=localStorage.getItem(NAME_KEY)||"";}catch(e){}
   whoIn.value=name;
   await pullAll();
   const v=await rpc("survey_rev");
-  lastSig=v.n+":"+v.last+":"+v.photos;
+  lastSig=sigOf(v);
   syncStatus();
-  offerResume();
+  /* The gate wraps the whole app, so a deep link survives it: the fragment sat
+     in the URL through the lock screen and is only acted on now. Send someone
+     #/projects/water-pressurized and they land there once they unlock. */
+  route();
+  if(curRoute.area==="survey")offerResume();
   keepAwake();
   startPolling();
 }
@@ -1365,6 +2103,12 @@ $("lockForm").onsubmit=async e=>{
   SMAP=Object.fromEntries(STATES.map(s=>[s.id,s]));
   SECTIONS=DOC.sections;
   TOTAL=SECTIONS.reduce((n,s)=>n+s.items.length,0);
+
+  /* projects.js is a plain script, so a syntax error in it would take the
+     survey down with it. Guard the read rather than trusting window.PROJECTS. */
+  PROJ=(window.PROJECTS||[]).filter(p=>p&&p.slug);
+  PMAP=Object.fromEntries(PROJ.map(p=>[p.slug,p]));
+  renderIndex();
 
   build();
   SECTIONS.forEach((s,i)=>{if(i>0)$("sec-"+s.id).classList.add("closed");});
