@@ -1,16 +1,23 @@
-# Trillium 1300 — Condition Survey
+# Trillium 1300 — Condition Survey & Projects
 
-84 checkpoints across 9 sections, graded on five states, shared live between
-devices. A side elevation of the trailer takes the colour of the worst finding
-in each area, so a red seam is legible without opening anything.
+Two areas behind one passphrase.
+
+**Survey** — 84 checkpoints across 9 sections, graded on five states, shared
+live between devices. A side elevation of the trailer takes the colour of the
+worst finding in each area, so a red seam is legible without opening anything.
+
+**Projects** — one page per job: what the design is, what to buy, what order to
+do it in, and what is still undecided. Parts and steps tick off and sync the
+same way grades do.
 
 Static HTML. No build step, no framework, no bundler. Postgres does the merging.
 
 ```
-index.html         the whole app
+index.html         the whole app — both areas, one router
 checkpoints.json   the 84 checkpoints — the durable asset, single source of truth
+projects.js        the project pages, same role for the other area
 config.js          Supabase URL + publishable key (safe to commit)
-schema.sql         the tables and the nine passphrase-gated functions
+schema.sql         the tables and the twelve passphrase-gated functions
 ```
 
 ## Setup
@@ -22,6 +29,10 @@ this uses a few MB).
 
 Open **SQL Editor → New query**, paste all of [`schema.sql`](schema.sql), and
 **change `CHANGE-ME` on the last line to your real passphrase** before running it.
+
+The file is idempotent — every table is `if not exists`, every function is
+`or replace`, and the survey row is `on conflict do nothing`, so re-running it
+after a schema change is safe and will **not** reset your passphrase.
 
 To change the passphrase later:
 
@@ -75,8 +86,65 @@ Instead:
 survey; there are no per-person permissions. That is the right shape for two
 people surveying one trailer, and the wrong shape for anything else.
 
+Because of that, **`survey_clear` is not granted to `anon` and has no button.**
+It was the only action that could destroy everyone's work at once, there is no
+history table to recover from, and Postgres holds the only copy of the grades
+and photos. It survives as a function you can run deliberately from the SQL
+editor. If you ever re-add a destructive action, revoke it here first.
+
 The passphrase is stored in `localStorage` when "stay unlocked" is ticked, so a
 phone doesn't re-prompt every time. **Lock** clears it.
+
+## Project pages
+
+`#/survey` · `#/projects` · `#/projects/<slug>`, switched by a two-tab bar
+pinned to the bottom of the screen. Bottom rather than a header switcher for the
+same reason "Next ungraded" lives there: the app is used one-handed and the top
+of a phone is the hardest place to reach. On the survey the two bars stack, tabs
+underneath.
+
+**Hash routing, not clean paths.** GitHub Pages has no rewrites, so
+`/projects/water-pressurized` as a real path would need a `404.html` kept
+identical to `index.html` plus a `<base href="/">` — and that `<base>` changes
+how `config.js`, `checkpoints.json`, `projects.js`, the icons, the manifest's
+`./` scope and the service worker's `./` shell entries all resolve. A lot of
+blast radius on the offline machinery to buy a prettier URL. The fragment is
+never sent to the server and the service worker never sees it, so offline
+behaviour is unchanged. Deep links land correctly after unlocking — the gate
+wraps the whole app and the fragment simply waits in the URL.
+
+### Adding a project
+
+Add an entry to [`projects.js`](projects.js). Nothing else: no new HTML file, no
+script tag, no service-worker edit. A page is `sections[] → blocks[]`, where
+blocks are tagged by `kind` so each project orders its own page rather than
+filling in a fixed template:
+
+| kind | holds |
+|---|---|
+| `diagram` | a hand-drawn SVG string, an aria-label, an optional legend |
+| `notes` | callouts at three levels — `info`, `key`, `stop` |
+| `parts` | grouped shopping list, prices, `quoted`/`est` confidence, tallies |
+| `sequence` | numbered order of work |
+| `gates` | open decisions and what each is waiting on |
+| `refs` | external links with a blurb and a source label |
+
+There is deliberately **no generic HTML block**. Every part of the water page
+fits the six kinds above; adding an escape hatch now would guarantee it gets
+used to dodge the schema later. If a project genuinely doesn't fit, add a kind
+and a renderer in `BLOCKS`.
+
+The schematic is a per-project slot, not a diagram engine — it takes an SVG
+string or a function returning an element, and its `.pth-*` styles live in
+`index.html` under "water project schematic". Another project's drawing brings
+its own class block.
+
+**Part and step ids are permanent.** They are primary-key columns in
+`project_items`. Reword a display name freely; change an `id` and you orphan
+everyone's ticks. Same rule as a checkpoint id.
+
+Projects with no `sections` show on the index as "not written yet" — that's all
+the six planned entries are.
 
 ## How syncing works
 
@@ -90,8 +158,21 @@ Timestamps come from `now()` in Postgres, not the phone, so clock drift between
 devices can't reorder anything. The importer is the one exception: it passes the
 original timestamps, which is why importing can't clobber newer work.
 
+Project state works the same way, one row per tickable item keyed
+`(survey_slug, project_slug, item_id)`, merged by `project_set`. A checkbox is a
+single field, so it can't even have the field-level version of this problem.
+
 Clients poll `survey_rev` every 5s — a tiny call returning a count and a max
-timestamp — and only pull the full record set when that signature moves.
+timestamp — and only pull the full record set when that signature moves. The
+project counters ride along in that same call rather than getting their own
+poller: every RPC runs `assert_pass`, and `assert_pass` is a bcrypt compare, so
+a second timer would double the server's bcrypt work just to ask "anything new?"
+
+One caveat on the survey's merge, which project state does not share: a grade is
+pushed as a whole row, so if one person types a note while the other sets a
+state **on the same checkpoint**, the note-writer's push carries their stale
+copy of the state. Row-level conflicts are handled; same-row field-level ones
+are not. Left alone deliberately — fixing it means per-field timestamps.
 
 **Why not Realtime?** Supabase Realtime evaluates the same RLS policies. With
 RLS denying everything to `anon`, a subscription delivers nothing. Realtime and
@@ -189,7 +270,17 @@ type Record = {
   updatedBy: string;
   updatedAt: number;   // epoch ms, set by Postgres
 };
+
+type ProjectItem = {           // one per ticked part or step
+  checked: boolean;
+  updatedBy: string;
+  updatedAt: number;
+};
 ```
+
+The same rule applies on the projects side, for the same reason: part and step
+`id`s are what ticks are keyed to. `projects.js` namespaces them `part.<id>` and
+`step.<id>` so both can share one table.
 
 ## Not built
 
