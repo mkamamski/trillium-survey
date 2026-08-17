@@ -141,7 +141,53 @@ its own class block.
 
 **Part and step ids are permanent.** They are primary-key columns in
 `project_items`. Reword a display name freely; change an `id` and you orphan
-everyone's ticks. Same rule as a checkpoint id.
+everyone's ticks. Same rule as a checkpoint id — and unlike that one, this is
+now enforced rather than asked for. See below.
+
+### Publishing a project page
+
+Every change to `projects.js` is gated by
+[`validate-projects.mjs`](.github/scripts/validate-projects.mjs), run by
+[a workflow](.github/workflows/validate-projects.yml) on pull requests. That
+gate is what lets someone publish without another person reading the diff.
+Three checks:
+
+1. **Syntax.** `projects.js` is a plain `<script>`. One stray quote and
+   `window.PROJECTS` is never defined, so *every* project page renders blank.
+   (The survey itself survives — `index.html` guards that read — but the whole
+   projects area disappears until someone reverts.)
+2. **Shape.** Unknown block kinds and missing required fields render as
+   *nothing*, silently, because the renderer skips what it doesn't recognise.
+   Every error names the exact project, section and field.
+3. **Id stability.** Reads the ids that actually have state in Postgres and
+   hard-fails if the edit drops one, naming the id and who ticked it. This is
+   the check that stops a rename from silently orphaning real work.
+
+Run it yourself any time:
+
+```bash
+node .github/scripts/validate-projects.mjs
+```
+
+Checks 1 and 2 need nothing. Check 3 needs `SUPABASE_URL`,
+`SUPABASE_ANON_KEY` and `CI_PASS`, and is skipped with a warning when they're
+absent — so a fork PR still gets the first two.
+
+**`CI_PASS` is not the survey passphrase.** It's a second credential in
+`surveys.ci_hash` that unlocks exactly one function, `project_item_ids`,
+returning item ids and whether they're ticked. No grades, no notes, no costs,
+no photos. Handing a CI runner the real passphrase would give it read and write
+over everything; this way, leaking the CI secret costs you the knowledge that
+`part.pump-4008` exists. Set it with:
+
+```sql
+update public.surveys
+   set ci_hash = extensions.crypt('a different phrase', extensions.gen_salt('bf', 10))
+ where slug = 'trillium-1300';
+```
+
+Then add `CI_PASS`, `SUPABASE_URL` and `SUPABASE_ANON_KEY` as repository
+secrets under **Settings → Secrets and variables → Actions**.
 
 Projects with no `sections` show on the index as "not written yet" — that's all
 the six planned entries are.

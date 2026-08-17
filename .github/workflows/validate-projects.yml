@@ -1,0 +1,42 @@
+name: Validate project pages
+
+# This is the gate that lets a project page be published by someone who isn't
+# reading the diff. It runs on every PR touching projects.js, and again on main
+# as a backstop for anything committed directly.
+#
+# Secrets are only available to workflows on branches in THIS repo, not on PRs
+# from forks — so a fork PR runs the syntax and shape checks and skips the
+# id-stability one with a warning. That is the correct trade: the alternative is
+# handing the credential to anyone who can open a PR.
+on:
+  pull_request:
+    paths: ["projects.js", ".github/scripts/validate-projects.mjs"]
+  push:
+    branches: [main]
+    paths: ["projects.js", ".github/scripts/validate-projects.mjs"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # No install step. The app has no dependencies and neither does its
+      # tooling — the validator is plain Node with no package.json.
+      - name: Validate projects.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SURVEY_SLUG: ${{ vars.SURVEY_SLUG }}
+          # Not the survey passphrase. A separate credential that unlocks only
+          # project_item_ids — a list of item ids and whether they are ticked.
+          CI_PASS: ${{ secrets.CI_PASS }}
+        run: node .github/scripts/validate-projects.mjs
