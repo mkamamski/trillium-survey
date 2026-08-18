@@ -24,6 +24,7 @@
  * introduce the first package.json.
  *
  * Run locally:  node .github/scripts/validate-projects.mjs
+ * List ids:     node .github/scripts/validate-projects.mjs --ids
  */
 
 import { readFileSync } from "node:fs";
@@ -237,6 +238,20 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !CI_PASS) {
       `    Keep the id and change the display name instead, or remove the item deliberately.`
     );
   }
+}
+
+/* ── --ids: print every tickable id ─────────────────────────
+   The single source of truth for "what ids exist", so nothing has to
+   re-derive it with a grep that also catches section and group ids. */
+
+if (process.argv.includes("--ids")) {
+  if (errors.length) {
+    console.error("Cannot list ids — projects.js has errors. Run without --ids.");
+    process.exit(1);
+  }
+  for (const [slug, ids] of idsByProject)
+    for (const id of [...ids].sort()) console.log(`${slug}\t${id}`);
+  process.exit(0);
 }
 
 /* ── report ────────────────────────────────────────────────── */

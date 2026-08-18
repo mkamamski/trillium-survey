@@ -1,2 +1,7 @@
 .DS_Store
-.claude/
+
+# Claude Code config is machine-specific — launch.json holds absolute paths,
+# settings.local.json holds per-person permissions. Skills are not: they are
+# the shared workflow, and both of us should get them from a git pull.
+.claude/*
+!.claude/skills/
