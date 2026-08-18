@@ -328,6 +328,29 @@ The same rule applies on the projects side, for the same reason: part and step
 `id`s are what ticks are keyed to. `projects.js` namespaces them `part.<id>` and
 `step.<id>` so both can share one table.
 
+## History
+
+Every overwrite and delete on `records` and `project_items` appends the previous
+value to `record_history`, written by a trigger so no RPC can bypass it.
+Postgres holds the only copy of the grades, notes, costs and ticks; before this,
+a bad overwrite left no trace at all — newer timestamp wins, older value gone,
+no error. With two people editing, that stopped being theoretical.
+
+Inserts aren't logged (nothing to preserve) and neither are no-op re-pushes —
+the client sends the whole record on every edit, so logging those would bury the
+real changes. Read it with `survey_history(slug, pass, key, limit)`; pass a
+checkpoint id or `project/item` key for one thing's history, or omit it for
+everything recent.
+
+Restoring is deliberately manual — the values are in `before` as jsonb, and
+putting one back is an `update` you run knowingly from the SQL editor. There is
+no restore button, because a one-tap undo on shared data is how you lose the
+*other* person's work.
+
+**Photos are not covered.** Deleting one still destroys the bytes. Keeping image
+history would double the storage this table was designed to make cheap; if that
+matters, that's the point to move photos to Storage with a signed-URL service.
+
 ## Not built
 
 - Read-only share link for a seller or shop (would need a second passphrase and
