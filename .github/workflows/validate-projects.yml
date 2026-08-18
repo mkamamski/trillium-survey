@@ -33,10 +33,9 @@ jobs:
       # tooling — the validator is plain Node with no package.json.
       - name: Validate projects.js
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SURVEY_SLUG: ${{ vars.SURVEY_SLUG }}
-          # Not the survey passphrase. A separate credential that unlocks only
-          # project_item_ids — a list of item ids and whether they are ticked.
+          # The only secret needed. NOT the survey passphrase — a separate
+          # credential that unlocks project_item_ids and nothing else. The
+          # Supabase URL, publishable key and slug are read from config.js,
+          # which is already committed and served to every browser.
           CI_PASS: ${{ secrets.CI_PASS }}
         run: node .github/scripts/validate-projects.mjs

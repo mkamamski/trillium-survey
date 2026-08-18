@@ -194,15 +194,42 @@ for (const p of PROJECTS) {
 
 /* ── 3. id stability ───────────────────────────────────────── */
 
-const { SUPABASE_URL, SUPABASE_ANON_KEY, SURVEY_SLUG, CI_PASS } = process.env;
+/* The project URL, the publishable key and the slug are already committed in
+   config.js and served to every browser — making them CI secrets would be
+   ceremony, and secrets drift from the file the app actually uses. Read them
+   from the same place the app does. Env vars still win, for pointing a local
+   run at something else.
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !CI_PASS) {
+   CI_PASS is the one real secret, and it is NOT the survey passphrase — it
+   unlocks project_item_ids and nothing else. */
+function loadConfig() {
+  try {
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(readFileSync("config.js", "utf8"), sandbox, { filename: "config.js" });
+    return sandbox.window.TRILLIUM_CONFIG ?? {};
+  } catch {
+    return {};
+  }
+}
+
+const cfg = loadConfig();
+const SUPABASE_URL     = process.env.SUPABASE_URL     || cfg.supabaseUrl;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || cfg.supabaseAnonKey;
+const CI_PASS          = process.env.CI_PASS;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   warnings.push(
-    "id-stability check SKIPPED — SUPABASE_URL, SUPABASE_ANON_KEY or CI_PASS not set.\n" +
+    "id-stability check SKIPPED — could not read supabaseUrl/supabaseAnonKey from config.js.\n" +
+    "    Renaming an id will not be caught."
+  );
+} else if (!CI_PASS) {
+  warnings.push(
+    "id-stability check SKIPPED — CI_PASS is not set.\n" +
     "    Renaming an id will not be caught. See README, \"Publishing a project page\"."
   );
 } else {
-  const slug = SURVEY_SLUG || "trillium-1300";
+  const slug = process.env.SURVEY_SLUG || cfg.surveySlug || "trillium-1300";
   let rows;
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/project_item_ids`, {
@@ -214,12 +241,29 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !CI_PASS) {
       },
       body: JSON.stringify({ p_slug: slug, p_pass: CI_PASS })
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+    if (!res.ok) {
+      const body = await res.text();
+      /* A refused credential and an unreachable database need different fixes,
+         so they must not share a message. 28000 is the errcode assert_pass
+         raises on a bad passphrase. */
+      if (res.status === 403 || body.includes("28000")) {
+        const e = new Error("credential refused");
+        e.authFailure = true;
+        throw e;
+      }
+      throw new Error(`HTTP ${res.status} ${body.slice(0, 200)}`);
+    }
     rows = await res.json();
   } catch (e) {
-    /* A database we cannot reach must not silently pass the check it exists to
-       perform. Fail loudly and let a human decide. */
-    errors.push(`id-stability check could not reach the database: ${e.message}`);
+    /* Either way this fails closed. A check that silently passes when it could
+       not run is worse than no check, because you would trust it. */
+    errors.push(
+      e.authFailure
+        ? "id-stability check could not run: CI_PASS was refused by the database.\n" +
+          "    The secret must match surveys.ci_hash — see README, \"Publishing a project page\".\n" +
+          "    Note it is NOT the survey passphrase."
+        : `id-stability check could not reach the database: ${e.message}`
+    );
     rows = null;
   }
 

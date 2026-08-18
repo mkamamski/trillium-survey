@@ -169,9 +169,12 @@ Run it yourself any time:
 node .github/scripts/validate-projects.mjs
 ```
 
-Checks 1 and 2 need nothing. Check 3 needs `SUPABASE_URL`,
-`SUPABASE_ANON_KEY` and `CI_PASS`, and is skipped with a warning when they're
-absent — so a fork PR still gets the first two.
+Checks 1 and 2 need nothing. Check 3 needs one secret, `CI_PASS`, and is
+skipped with a warning when it's absent — so a fork PR still gets the first two.
+
+The Supabase URL, publishable key and survey slug come from `config.js`, which
+is already committed and served to every browser. Making them CI secrets would
+be ceremony, and a copied secret drifts from the file the app actually uses.
 
 **`CI_PASS` is not the survey passphrase.** It's a second credential in
 `surveys.ci_hash` that unlocks exactly one function, `project_item_ids`,
@@ -186,8 +189,15 @@ update public.surveys
  where slug = 'trillium-1300';
 ```
 
-Then add `CI_PASS`, `SUPABASE_URL` and `SUPABASE_ANON_KEY` as repository
-secrets under **Settings → Secrets and variables → Actions**.
+Then add it as a single repository secret named `CI_PASS` under
+**Settings → Secrets and variables → Actions**. That is the only secret the
+workflow needs.
+
+If it's wrong, CI says so plainly — *"CI_PASS was refused by the database"* —
+rather than failing as a connection error, because those need different fixes.
+An unreachable database is a separate message, and both fail the check rather
+than skipping it: a check that silently passes when it could not run is worse
+than no check, because you'd trust it.
 
 Projects with no `sections` show on the index as "not written yet" — that's all
 the six planned entries are.
