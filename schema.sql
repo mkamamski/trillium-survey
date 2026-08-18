@@ -372,6 +372,124 @@ begin
   return v;
 end $$;
 
+-- ─────────────────────────── history ───────────────────────────
+
+-- Postgres holds the only copy of every grade, note, cost and tick. Nothing
+-- else does. Before this table, an overwrite left no trace: newer timestamp
+-- wins, older value gone, no error and nothing to look at afterwards. With two
+-- people editing that stops being theoretical.
+--
+-- Append-only, written by triggers so nothing can bypass it by using a
+-- different RPC. `before` is the row AS IT WAS — this is an undo trail, not an
+-- audit log, so it stores what you would need to put something back.
+create table if not exists public.record_history (
+  id          bigserial primary key,
+  survey_slug text not null,
+  source      text not null check (source in ('records','project_items')),
+  item_key    text not null,   -- checkpoint id, or 'project/item' for a tick
+  op          text not null check (op in ('update','delete')),
+  before      jsonb not null,
+  changed_at  timestamptz not null default now()
+);
+
+create index if not exists record_history_lookup
+  on public.record_history (survey_slug, source, item_key, changed_at desc);
+create index if not exists record_history_recent
+  on public.record_history (survey_slug, changed_at desc);
+
+alter table public.record_history enable row level security;
+revoke all on public.record_history from anon, authenticated;
+
+-- No INSERT trigger: a new row has no previous value, and the row's own
+-- updated_at already says when it appeared. History is about what got
+-- overwritten.
+create or replace function public.log_record_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  -- The client pushes the whole record on every edit, so an unchanged re-push
+  -- is common. Logging those would bury the real changes.
+  if tg_op = 'UPDATE'
+     and old.state         is not distinct from new.state
+     and old.note          is not distinct from new.note
+     and old.cost_estimate is not distinct from new.cost_estimate then
+    return null;
+  end if;
+
+  insert into public.record_history (survey_slug, source, item_key, op, before)
+  values (old.survey_slug, 'records', old.checkpoint_id, lower(tg_op),
+          jsonb_build_object(
+            'state',        old.state,
+            'note',         old.note,
+            'costEstimate', old.cost_estimate,
+            'updatedBy',    old.updated_by,
+            'updatedAt',    extract(epoch from old.updated_at) * 1000));
+  return null;
+end $$;
+
+create or replace function public.log_project_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'UPDATE' and old.checked is not distinct from new.checked then
+    return null;
+  end if;
+
+  insert into public.record_history (survey_slug, source, item_key, op, before)
+  values (old.survey_slug, 'project_items',
+          old.project_slug || '/' || old.item_id, lower(tg_op),
+          jsonb_build_object(
+            'checked',   old.checked,
+            'updatedBy', old.updated_by,
+            'updatedAt', extract(epoch from old.updated_at) * 1000));
+  return null;
+end $$;
+
+drop trigger if exists records_history on public.records;
+create trigger records_history
+  after update or delete on public.records
+  for each row execute function public.log_record_history();
+
+drop trigger if exists project_items_history on public.project_items;
+create trigger project_items_history
+  after update or delete on public.project_items
+  for each row execute function public.log_project_history();
+
+-- Read it back. Pass p_key to see one checkpoint's or one item's history,
+-- omit it for everything recent across the survey.
+create or replace function public.survey_history(
+  p_slug text, p_pass text, p_key text default null, p_limit int default 50
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare v json;
+begin
+  perform public.assert_pass(p_slug, p_pass);
+  select coalesce(json_agg(row_to_json(h) order by h.changed_at desc), '[]'::json)
+    into v
+    from (
+      select source, item_key, op, before,
+             extract(epoch from changed_at) * 1000 as changed_at
+        from public.record_history
+       where survey_slug = p_slug
+         and (p_key is null or item_key = p_key)
+       order by changed_at desc
+       limit least(coalesce(p_limit, 50), 500)
+    ) h;
+  return v;
+end $$;
+
+grant execute on function public.survey_history(text, text, text, int) to anon, authenticated;
+
 -- ─────────────────────────── photos ───────────────────────────
 
 -- Metadata plus thumbnails only. Full-size bytes are never in this payload.
