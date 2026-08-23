@@ -451,6 +451,13 @@ begin
   return null;
 end $$;
 
+-- Trigger functions are never called directly. CREATE FUNCTION grants EXECUTE to
+-- PUBLIC by default, so like assert_pass they have to be revoked explicitly —
+-- naming `public`, not just anon. (Missed on the first pass; caught by auditing
+-- the live database against this file.)
+revoke execute on function public.log_record_history()  from public, anon, authenticated;
+revoke execute on function public.log_project_history() from public, anon, authenticated;
+
 drop trigger if exists records_history on public.records;
 create trigger records_history
   after update or delete on public.records
@@ -600,3 +607,18 @@ values (
   extensions.crypt('CHANGE-ME', extensions.gen_salt('bf', 10))
 )
 on conflict (slug) do nothing;
+
+-- ─────────────────────────── audit ───────────────────────────
+-- Run this against the live database to check it still matches this file.
+-- Expect: only passphrase-gated entry points callable by anon; assert_pass,
+-- assert_pass_or_ci, survey_clear, project_clear and both log_* functions NOT
+-- callable; every table RLS-on with zero policies and no anon select; both
+-- history triggers present.
+--
+--   with fns as (
+--     select p.proname, has_function_privilege('anon', p.oid, 'execute') as anon_exec
+--       from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--      where n.nspname = 'public')
+--   select json_build_object(
+--     'callable_by_anon',     (select json_agg(proname order by proname) from fns where anon_exec),
+--     'not_callable_by_anon', (select json_agg(proname order by proname) from fns where not anon_exec));
