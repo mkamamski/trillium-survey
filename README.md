@@ -176,6 +176,32 @@ The Supabase URL, publishable key and survey slug come from `config.js`, which
 is already committed and served to every browser. Making them CI secrets would
 be ceremony, and a copied secret drifts from the file the app actually uses.
 
+### Checking the whole thing
+
+`validate-projects.mjs` gates one file. [`eval.py`](.github/scripts/eval.py)
+gates everything — this repo, the notes repo next door, and the live systems:
+
+```bash
+python3 .github/scripts/eval.py
+```
+
+It runs the validator, checks `index.html` for undefined CSS variables and
+unbalanced tags, verifies `schema.sql` grants every function it defines and
+revokes the destructive ones *naming the `public` role*, confirms both repos are
+clean and pushed, that the deployed commit is current `main`, that the last CI
+run passed, and that the notes repo is still private. It also cross-checks the
+two repos' documentation against each other and against reality — the "84
+checkpoints" claim is verified by counting them.
+
+Anything it can't reach is skipped with a reason rather than silently passing,
+so it's useful offline. Set `HANDBOOK_HTML` to a published copy of the handbook
+to include that too.
+
+**What it cannot catch:** a database that has drifted from `schema.sql`. Nothing
+on disk is wrong in that case. The audit query at the bottom of `schema.sql`
+covers it, and that is exactly how two trigger functions were found still
+callable by `anon` — every file check passed while they were.
+
 **`CI_PASS` is not the survey passphrase.** It's a second credential in
 `surveys.ci_hash` that unlocks exactly one function, `project_item_ids`,
 returning item ids and whether they're ticked. No grades, no notes, no costs,
