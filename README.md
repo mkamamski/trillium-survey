@@ -78,7 +78,7 @@ Instead:
 - Every table has **RLS enabled with zero policies**. Postgres denies every row
   to the `anon` role. Holding the anon key gets you nothing at all.
 - All access goes through `SECURITY DEFINER` functions that call `assert_pass()`
-  first, comparing a bcrypt hash. Only those nine functions are granted to `anon`.
+  first, comparing a bcrypt hash. Only those twelve functions are granted to `anon`.
 - A wrong guess costs a bcrypt round plus a forced 0.5s sleep, which makes online
   guessing impractical without a rate-limit table.
 
