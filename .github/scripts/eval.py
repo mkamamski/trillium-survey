@@ -90,6 +90,15 @@ for fn in ["survey_clear", "project_clear", "assert_pass", "log_record_history",
     check("app", f"{fn} revoke names the `public` role",
           bool(re.search(rf"revoke (?:all|execute) on function public\.{fn}\([^)]*\)\s*from public", sch)))
 check("app", "schema.sql carries the audit query", "callable_by_anon" in sch)
+
+# the README states a number; nothing stops it drifting except this
+WORDS = {9:"nine",10:"ten",11:"eleven",12:"twelve",13:"thirteen",14:"fourteen",15:"fifteen"}
+rd = read(f"{APP}/README.md")
+n_granted = len(granted)
+claimed = [w for n, w in WORDS.items() if f"{w} functions are granted" in rd or f"the {w} passphrase-gated" in rd]
+check("app", f"README's function count matches schema.sql ({n_granted})",
+      claimed and all(w == WORDS.get(n_granted) for w in claimed),
+      f"README says {sorted(set(claimed))}, schema.sql grants {n_granted}")
 check("app", "record_history documented in README", "record_history" in read(f"{APP}/README.md"))
 
 # ═══════════════════════ live systems ═══════════════════════
