@@ -57,6 +57,16 @@
   /* project pages read as a document rather than a control panel, so they
      get a narrower measure than the survey's two-column layout */
   --maxw-doc:820px;
+
+  /* guide pages — the whole palette of the furnace-style pages, in one place.
+     They alias the tokens above rather than introducing colours, so a guide
+     page cannot drift away from the rest of the app by accident. */
+  --g-accent:var(--gold);      /* progress, ticked, live branch     */
+  --g-quiet:var(--ink-3);      /* dormant branch, secondary numbers */
+  --g-line:var(--line);
+  --g-face:var(--card);
+  --g-inset:var(--inset);
+
   --tabh:54px;
 }
 *{box-sizing:border-box}
@@ -532,6 +542,158 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
   .pseq li{padding-left:34px}
 }
 
+/* ═══════════════ GUIDE PAGES ═══════════════
+   The furnace page and the guide pages to follow. A phase spine with a
+   progress hero, a sticky phase nav and collapsible phases.
+
+   PALETTE NOTE. The standalone furnace mockup was drawn in IBM Plex on a dark
+   pine-and-bone ground. The app is Fraunces + Karla on warm paper, and adding
+   a second type family would mean a second font payload the service worker has
+   to precache, on a page whose whole point is being usable in a driveway. So
+   the structure, the note variants, the band nav and the gauge are ported
+   exactly; the colours and type come from the app's tokens, and the page reads
+   as part of the app rather than a visitor.
+
+   Everything below draws from the six --g-* tokens in :root. Swapping the page
+   to the dark pine ground is editing those, not hunting through the file.
+   ─────────────────────────────────────────── */
+
+.ghead{background:var(--teal);color:var(--cream);padding:26px 0 30px}
+.ghead .wrap{max-width:var(--maxw-doc)}
+.ghead .eyebrow{color:var(--gold)}
+.ghead h1{font-size:clamp(1.9rem,6vw,2.9rem);margin:.18em 0 .28em;color:var(--cream);line-height:1.05}
+.glede{margin:0;max-width:46ch;color:var(--cream-2);font-size:1rem}
+.ghGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;margin-top:14px}
+.ghead .sync{color:var(--cream-2);margin-top:18px}
+/* the narrow-screen rule above hides the chip's label to save room in the
+   survey rail; on a page header there is room, and a bare dot says nothing */
+.ghead .sync span{display:inline!important}
+
+.gstats{display:flex;gap:22px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid rgba(247,239,223,.25)}
+.gstat b{display:block;font-family:'Fraunces',serif;font-size:1.7rem;line-height:1;color:var(--cream);font-variant-numeric:tabular-nums}
+.gstat b.small{font-size:1.05rem;padding-top:.45rem}
+.gstat span{display:block;margin-top:5px;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cream-2);font-weight:700}
+
+.ggaugeWrap{display:flex;justify-content:flex-end}
+.ggauge{width:100%;max-width:270px}
+.gg-h{fill:none;stroke:var(--cream-2);stroke-width:2.2;stroke-linecap:round}
+.gg-h.thin{stroke-width:1.6}
+.gg-cab{fill:none;stroke:var(--cream-2);stroke-width:2.4}
+.gg-grill{stroke:var(--cream-2);stroke-width:1.4;fill:none}
+.gg-fill{fill:var(--gold);transition:y .5s cubic-bezier(.2,.7,.3,1),height .5s cubic-bezier(.2,.7,.3,1)}
+.gg-burn{fill:var(--rust)}
+@media(max-width:800px){
+  .ghGrid{grid-template-columns:1fr;gap:20px}
+  .ggaugeWrap{justify-content:flex-start}
+  .ggauge{max-width:200px}
+}
+
+/* Sticky phase nav. Scrolls horizontally on a phone; the meter is pinned to
+   the end of it so progress is on screen once the hero is gone. */
+.gband{position:sticky;top:0;z-index:60;background:var(--teal-d);border-bottom:1px solid rgba(0,0,0,.25)}
+.gbandIn{display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none;
+  max-width:var(--maxw-doc);margin:0 auto;padding:0 20px}
+.gbandIn::-webkit-scrollbar{display:none}
+.gpill{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--cream-2);
+  font-family:'Karla',sans-serif;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  padding:12px 10px;cursor:pointer;white-space:nowrap;opacity:.75;transition:.18s}
+.gpill:hover{opacity:1;color:var(--cream)}
+.gpill[data-done="1"]{color:var(--gold);opacity:1}
+.gmeter{flex:0 0 auto;display:flex;align-items:center;gap:8px;margin-left:auto;padding-left:14px}
+.gmeterBar{width:70px;height:5px;background:rgba(247,239,223,.22);border-radius:3px;overflow:hidden}
+.gmeterBar i{display:block;height:100%;width:0;background:var(--gold);transition:width .45s ease}
+.gmeter span{font-size:.68rem;font-weight:700;color:var(--cream);font-variant-numeric:tabular-nums}
+
+/* The one rule that applies to every phase at once, so it sits outside them. */
+.grule{background:var(--rust);color:var(--cream);padding:16px 0}
+.grule .wrap{max-width:var(--maxw-doc);display:flex;gap:15px;align-items:flex-start}
+.gruleTag{flex:0 0 auto;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;
+  border:1.5px solid var(--cream);border-radius:3px;padding:3px 7px;margin-top:2px}
+.grule p{margin:0;font-size:.93rem;color:var(--cream)}
+
+.gbody{max-width:var(--maxw-doc);margin:0 auto;padding:8px 20px 40px}
+.gphase{border-top:1px solid var(--g-line);padding:22px 0 6px}
+.gphase:first-child{border-top:0}
+.gphHead{display:flex;gap:14px;align-items:baseline;cursor:pointer;user-select:none}
+.gphNum{flex:0 0 auto;font-size:.74rem;font-weight:700;letter-spacing:.1em;color:var(--rust);padding-top:5px}
+.gphTitle{flex:1 1 auto;min-width:0}
+.gphTitle h2{font-size:1.3rem}
+.gphSub{margin-top:5px;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-3)}
+.gphCount{flex:0 0 auto;font-size:.76rem;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gphase .chev{padding-top:6px}
+.gphase.closed .chev{transform:rotate(-90deg)}
+.gphase.closed .gphBody{display:none}
+.gphBody{padding:16px 0 4px;max-width:70ch}
+.gphIntro{margin:0 0 18px;color:var(--ink-2)}
+
+/* A dormant branch stays fully readable — it is the path you did not take, not
+   an error — but loses the accent colour so the live one is unmistakable. */
+.gphase.branch h2{color:var(--ink-3)}
+.gphase.branch[data-live="1"] h2{color:var(--ink)}
+.gbranchFlag{display:inline-block;margin-bottom:14px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--g-quiet);border:1px solid var(--g-line);border-radius:3px;padding:3px 8px}
+.gphase.branch[data-live="1"] .gbranchFlag{color:#8A6410;border-color:var(--g-accent);background:rgba(217,162,39,.12)}
+.gphase.branch[data-live="0"] .gsteps{opacity:.62}
+
+.gstep,.gmat{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-soft);align-items:flex-start}
+.gstep:last-child,.gmat:last-child{border-bottom:0}
+/* 19px is the box; the touch target is padded out to 44px, because this is
+   used with cold hands next to a trailer. */
+.gcb{flex:0 0 auto;position:relative;width:19px;height:19px;margin-top:2px;padding:0;cursor:pointer;
+  border:1.6px solid var(--teal-l);border-radius:4px;background:none}
+.gcb::before{content:"";position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px}
+.gcb::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;
+  border:solid var(--ink);border-width:0 2.2px 2.2px 0;transform:rotate(42deg) scale(0);transition:transform .16s}
+.gcb[aria-checked="true"]{background:var(--g-accent);border-color:var(--g-accent)}
+.gcb[aria-checked="true"]::after{transform:rotate(42deg) scale(1)}
+.gtxt{flex:1 1 auto;min-width:0}
+.gtitle{font-weight:700}
+.gdesc{margin-top:3px;font-size:.92rem;color:var(--ink-2)}
+[data-done="1"] > .gtxt > .gtitle{color:var(--ink-3);text-decoration:line-through;text-decoration-color:rgba(217,162,39,.7)}
+[data-done="1"] > .gtxt > .gdesc{color:var(--ink-3)}
+.gmat[data-key="1"] .gtitle{color:#8A6410}
+.gmat[data-done="1"][data-key="1"] .gtitle{color:var(--ink-3)}
+
+.pgrpTitle{font-family:'Karla',sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;
+  font-weight:800;color:var(--rust);margin:24px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--g-line)}
+.gkit .pacts{margin-bottom:4px}
+
+.gtblWrap{overflow-x:auto;margin:18px 0}
+.gtbl{width:100%;border-collapse:collapse;font-size:.9rem;min-width:420px}
+.gtbl caption{text-align:left;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;font-weight:800;
+  color:var(--ink-3);padding-bottom:8px}
+.gtbl th{text-align:left;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;
+  color:var(--rust);border-bottom:1px solid var(--g-line);padding:0 12px 8px 0}
+.gtbl td{padding:11px 12px 11px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.gtbl td:first-child{color:var(--ink);font-weight:700;white-space:nowrap}
+
+.gate{background:var(--g-face);border:1px solid var(--g-line);border-radius:8px;padding:20px;margin:20px 0}
+.gate h4{margin:0 0 3px;font-size:1.05rem}
+.gateSub{margin:0 0 14px;font-size:.9rem;color:var(--ink-3)}
+.gateOpts{display:grid;gap:8px}
+.gateOpt{text-align:left;font:inherit;font-size:.93rem;color:var(--ink);background:var(--paper);
+  border:1.5px solid var(--g-line);border-radius:6px;padding:12px 14px;cursor:pointer;transition:.15s}
+.gateOpt:hover{border-color:var(--teal-l)}
+.gateOpt.on{border-color:var(--g-accent);background:rgba(217,162,39,.13);font-weight:700}
+.gateVerdict{margin-top:14px;padding:14px 15px;border-left:3px solid var(--g-accent);
+  background:var(--g-inset);border-radius:0 6px 6px 0;font-size:.93rem;color:var(--ink-2)}
+.gateVerdict b{color:var(--ink)}
+
+.gseq{background:var(--teal-d);border-radius:8px;padding:18px;overflow-x:auto;margin:18px 0}
+.gseq pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;line-height:1.85;
+  color:var(--cream-2);white-space:pre}
+.gseq b{color:var(--gold);font-weight:700}
+
+@media(max-width:560px){
+  .gbody,.grule .wrap,.gbandIn{padding-left:16px;padding-right:16px}
+  .ghead .wrap{padding-left:16px;padding-right:16px}
+  .gphBody{max-width:none}
+  .gstats{gap:16px}
+  .gstat b{font-size:1.4rem}
+  .grule .wrap{flex-direction:column;gap:9px}
+  .gtbl td:first-child{white-space:normal}
+}
+
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 @media print{
@@ -570,6 +732,30 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0 60px}
   .pbox{border-color:#000}
   .pcb:checked + .pbox{background:#000!important;border-color:#000!important}
   .pseq li::before{background:#000!important;color:#fff!important}
+
+  /* guide pages — this one gets printed and read in the driveway */
+  .ghead{background:#fff!important;color:#000!important;border-bottom:1px solid #000;padding:0 0 12px}
+  .ghead h1,.glede,.ghead .eyebrow,.gstat b,.gstat span{color:#000!important}
+  .gband,.ggaugeWrap,.gmeter,.gkit .pacts{display:none!important}
+  /* every phase prints, whatever happens to be collapsed on screen */
+  .gphase,.gphase.closed{display:block!important}
+  .gphase.closed .gphBody{display:block!important}
+  .gphBody{max-width:none}
+  .grule{background:#fff!important;color:#000!important;border:2px solid #000;padding:10px}
+  .grule p,.gruleTag{color:#000!important}
+  .gruleTag{border-color:#000!important}
+  /* the dormant branch still prints — on paper you cannot click the gate, and
+     the path you did not take is exactly what you might need to re-read */
+  .gphase.branch h2,.gphase.branch[data-live="0"] .gsteps{color:#000!important;opacity:1!important}
+  .gbranchFlag{border-color:#666!important;color:#000!important;background:#fff!important}
+  .gate,.gateOpt,.gateVerdict,.gseq,.gtbl td,.gtbl th{background:#fff!important;color:#000!important;border-color:#999!important}
+  .gseq pre,.gseq b,.gateVerdict b,.gtbl td:first-child{color:#000!important}
+  .gdesc,.gphIntro,.gateSub,.gtbl td{color:#222!important}
+  .gcb{border-color:#000!important}
+  .gcb[aria-checked="true"]{background:#000!important;border-color:#000!important}
+  .gcb[aria-checked="true"]::after{border-color:#fff!important}
+  .gstep,.gmat,.gate,.gtbl tr{break-inside:avoid}
+  .pgrpTitle{color:#000!important;border-color:#999!important}
 }
 </style>
 
@@ -773,6 +959,12 @@ let TOTAL = 0;
 let rec    = {};            // checkpointId -> record
 let shots  = {};            // checkpointId -> [photo meta]
 let pstate = {};            // projectSlug -> itemId -> {checked, updatedBy, updatedAt}
+/* Page-level state, one level shallower than pstate: projectSlug -> key ->
+   {value, updatedBy, updatedAt}. Only guide pages use it, and so far only for
+   one key — the furnace's exchanger verdict. It is separate from pstate
+   because it is a different table and a different RPC, not because the shape
+   demands it. */
+let gstate = {};            // projectSlug -> key -> {value, updatedBy, updatedAt}
 let PROJ   = [], PMAP = {}; // project pages, from projects.js
 let pass   = null;
 let name   = "";
@@ -1112,14 +1304,27 @@ function syncStatus(){
    Project keys are namespaced "proj:<project>:<item>"; item ids may contain
    colons, so only the first two separators are structural. */
 const PKEY="proj:";
-function splitPKey(k){
-  const rest=k.slice(PKEY.length), i=rest.indexOf(":");
+/* Guide page state rides the same `pending` map under its own prefix, so the
+   sync chip, the unsaved badge and the beforeunload warning cover it too. */
+const GKEY="pgs:";
+function splitKey(k,prefix){
+  const rest=k.slice(prefix.length), i=rest.indexOf(":");
   return {project:rest.slice(0,i),item:rest.slice(i+1)};
 }
+const splitPKey=k=>splitKey(k,PKEY);
 
 async function push(k){
   try{
-    if(k.startsWith(PKEY)){
+    if(k.startsWith(GKEY)){
+      const {project,item}=splitKey(k,GKEY);
+      const g=(gstate[project]||{})[item]||{};
+      await rpc("project_state_set",{
+        p_project:project,
+        p_key:item,
+        p_value:g.value||"",
+        p_by:name||""             // Postgres stamps the time, as with grades
+      });
+    }else if(k.startsWith(PKEY)){
       const {project,item}=splitPKey(k);
       const s=(pstate[project]||{})[item]||{};
       await rpc("project_set",{
@@ -1200,21 +1405,39 @@ function applyProjects(remote){
   pstate=next;
 }
 
-const sigOf=v=>v.n+":"+v.last+":"+v.photos+":"+v.pn+":"+v.plast;
+/* Same rule as applyProjects, one level shallower. */
+function applyStates(remote){
+  const next={};
+  for(const proj in remote){
+    next[proj]={};
+    for(const key in remote[proj])next[proj][key]=remote[proj][key];
+  }
+  pending.forEach((_,k)=>{
+    if(!k.startsWith(GKEY))return;
+    const {project,item}=splitKey(k,GKEY);
+    const local=(gstate[project]||{})[item];
+    if(local)(next[project]||(next[project]={}))[item]=local;
+  });
+  gstate=next;
+}
+
+const sigOf=v=>v.n+":"+v.last+":"+v.photos+":"+v.pn+":"+v.plast+":"+v.sn+":"+v.slast;
 
 async function pullAll(){
-  const [records,photos,projects]=await Promise.all([
+  const [records,photos,projects,pagestate]=await Promise.all([
     rpc("survey_records"),
     rpc("survey_photos"),
     /* Tolerated separately, not folded into the rejection: unlock awaits this,
        so an unprovisioned project_items table would otherwise take the whole
        app down — you could not even sign in to look at the survey. Degrading
        to "project ticks don't sync" is the right failure. */
-    rpc("project_items_all").catch(e=>{console.error("project state unavailable",e);return null;})
+    rpc("project_items_all").catch(e=>{console.error("project state unavailable",e);return null;}),
+    rpc("project_state_all").catch(e=>{console.error("page state unavailable",e);return null;})
   ]);
   applyRecords(records||{});
   shots=groupPhotos(photos);
   if(projects)applyProjects(projects);
+  if(pagestate)applyStates(pagestate);
   refresh();
   paintProject();
   renderIndex();
@@ -1574,7 +1797,22 @@ function patchPart(project,item,checked){
   paintProject();
 }
 
+/* Page-level state — one key, one value, one upsert. Deliberately NOT a
+   read-modify-write: nothing here reads the page's state, edits a field and
+   writes the whole thing back, which is the race the survey page has. */
+function patchGuideState(project,key,value){
+  const g=gstate[project]||(gstate[project]={});
+  g[key]={value:value==null?"":String(value),updatedBy:name||"",updatedAt:Date.now()};
+
+  const k=GKEY+project+":"+key;
+  clearTimeout(pending.get(k));
+  pending.set(k,setTimeout(()=>push(k),400));
+  syncStatus();
+  paintProject();
+}
+
 const ticked=(slug,item)=>!!((pstate[slug]||{})[item]||{}).checked;
+const gval=(slug,key)=>((gstate[slug]||{})[key]||{}).value||"";
 const lineTotal=it=>(it.price||0)*(it.qty||1);
 
 function partsBlocks(p){
@@ -1694,6 +1932,9 @@ const BLOCKS={
 
   refs(p,b){
     const f=document.createDocumentFragment();
+    /* Optional heading, so a long reading list can be grouped by subject
+       instead of arriving as one undifferentiated run of links. */
+    if(b.title)f.appendChild(el("h3","pgrpTitle",esc(b.title)));
     (b.items||[]).forEach(r=>{
       const a=document.createElement("a");
       a.className="pref";
@@ -1702,8 +1943,145 @@ const BLOCKS={
       f.appendChild(a);
     });
     return f;
+  },
+
+  /* ─── guide pages ─── */
+
+  /* Unnumbered checkable steps. Distinct from `sequence`, which is an ordered
+     list of work: a guide phase is a set of things to do, not an order to do
+     them in, and numbering them twice (phase number plus step number) reads as
+     a false precision. Ticks are keyed "step.<id>" in project_items, exactly
+     like a sequence step, so the two share a table and a CI id check. */
+  steps(p,b){
+    const wrap=el("div","gsteps");
+    (b.items||[]).forEach(st=>wrap.appendChild(checkRow(p,"step."+st.id,st.title,st.detail,"gstep")));
+    return wrap;
+  },
+
+  /* The kit list. Deliberately not `parts`: parts carries price, quantity,
+     quoted/estimated confidence and a running total, and this page has no
+     purchase decisions in it — it exists to answer a question before any money
+     is spent. Same checkbox, no money. */
+  kit(p,b){
+    const wrap=el("div","gkit");
+
+    const acts=el("div","pacts");
+    const copy=el("button","btn","Copy what's left");
+    copy.type="button";
+    copy.onclick=function(){copyKit(p,b,this);};
+    const pr=el("button","btn ghost","Print page");
+    pr.type="button";
+    pr.onclick=()=>window.print();
+    acts.append(copy,pr);
+    wrap.appendChild(acts);
+
+    (b.groups||[]).forEach(g=>{
+      wrap.appendChild(el("h3","pgrpTitle",esc(g.title)));
+      const box=el("div","gkitBox");
+      (g.items||[]).forEach(it=>{
+        const row=checkRow(p,"kit."+it.id,it.name,it.note,"gmat");
+        if(it.key)row.dataset.key="1";
+        box.appendChild(row);
+      });
+      wrap.appendChild(box);
+    });
+    return wrap;
+  },
+
+  table(p,b){
+    const wrap=el("div","gtblWrap");
+    const t=el("table","gtbl");
+    t.innerHTML=
+      (b.caption?`<caption>${esc(b.caption)}</caption>`:"")+
+      "<thead><tr>"+(b.head||[]).map(h=>`<th scope="col">${h}</th>`).join("")+"</tr></thead>"+
+      "<tbody>"+(b.rows||[]).map(r=>"<tr>"+r.map(c=>`<td>${c}</td>`).join("")+"</tr>").join("")+"</tbody>";
+    wrap.appendChild(t);
+    return wrap;
+  },
+
+  /* The decision gate. One page-level value, written straight through
+     project_state_set. A radiogroup rather than a set of checkboxes because
+     exactly one answer applies — and re-picking the current answer clears it,
+     which is the only way back to "not judged" without a separate button. */
+  verdict(p,b){
+    const g=el("div","gate");
+    g.dataset.key=b.stateKey;
+    g.innerHTML=`<h4>${esc(b.title)}</h4><p class="gateSub">${esc(b.sub||"")}</p>`;
+
+    const opts=el("div","gateOpts");
+    opts.setAttribute("role","radiogroup");
+    opts.setAttribute("aria-label",b.title);
+    (b.options||[]).forEach(o=>{
+      const btn=el("button","gateOpt",esc(o.label));
+      btn.type="button";
+      btn.dataset.k=o.k;
+      btn.setAttribute("role","radio");
+      btn.setAttribute("aria-checked","false");
+      btn.onclick=()=>{
+        const cur=gval(p.slug,b.stateKey);
+        patchGuideState(p.slug,b.stateKey,cur===o.k?"":o.k);
+      };
+      opts.appendChild(btn);
+    });
+    g.appendChild(opts);
+
+    const v=el("div","gateVerdict");
+    v.hidden=true;
+    v.setAttribute("role","status");
+    g.appendChild(v);
+    return g;
+  },
+
+  seq(p,b){
+    const box=el("div","gseq");
+    const pre=document.createElement("pre");
+    pre.innerHTML=b.text||"";
+    box.appendChild(pre);
+    return box;
   }
 };
+
+/* One checkable row, shared by guide steps and the kit list.
+   A <button role="checkbox"> rather than a real <input>, unlike partRow: the
+   row carries block-level content (a title over a wrapped description), and a
+   <label> wrapping that much markup reads as one run-on string. The button
+   gets native Space and Enter handling for free; aria-checked is set in
+   paintProject alongside the visual state, so the two cannot drift. */
+function checkRow(p,itemId,title,detail,cls){
+  const row=el("div",cls);
+  row.dataset.item=itemId;
+
+  const b=el("button","gcb");
+  b.type="button";
+  b.setAttribute("role","checkbox");
+  b.setAttribute("aria-checked","false");
+  b.setAttribute("aria-label",title);
+  b.onclick=()=>patchPart(p.slug,itemId,!ticked(p.slug,itemId));
+
+  const t=el("div","gtxt");
+  t.appendChild(el("div","gtitle",esc(title)));
+  if(detail)t.appendChild(el("div","gdesc",detail));
+  t.appendChild(Object.assign(el("div","pwho"),{hidden:true}));
+
+  row.append(b,t);
+  return row;
+}
+
+/* Same shape as copyShoppingList, without the money. */
+async function copyKit(p,b,btn){
+  const L=[];
+  (b.groups||[]).forEach(g=>{
+    const left=(g.items||[]).filter(it=>!ticked(p.slug,"kit."+it.id));
+    if(!left.length)return;
+    L.push(g.title.toUpperCase());
+    left.forEach(it=>L.push("  - "+it.name+(it.note?"  ("+it.note+")":"")));
+    L.push("");
+  });
+  const txt=p.name.toUpperCase()+" — STILL NEED\n\n"+(L.join("\n").trim()||"Nothing — the kit is complete.");
+  try{await navigator.clipboard.writeText(txt);btn.textContent="Copied";}
+  catch(e){btn.textContent="Copy failed";}
+  setTimeout(()=>{btn.textContent="Copy what's left";},1800);
+}
 
 /* The whole row is the <label>, so the tap target is the row and not a 21px
    box — this gets used with cold hands in bad light. A real
@@ -1742,6 +2120,8 @@ function buildProject(slug){
   const p=PMAP[slug];
   if(!p||!p.sections)return;
   builtSlug=slug;
+
+  if(p.guide){buildGuide(p,host);return;}
 
   const head=el("header","phead");
   const w=el("div","wrap");
@@ -1787,6 +2167,211 @@ function buildProject(slug){
   paintProject();
 }
 
+/* ─────────── guide pages ─────────── */
+
+/* A guide page is a project page with a different spine: numbered phases you
+   work through and tick off, gated on one decision, rather than a design plus
+   a shopping list. It reuses the whole data path — project_items for the
+   ticks, the same `pending` map, the same sync chip — and differs only in
+   chrome: a progress hero, a sticky phase nav, and collapsible phases.
+   Anything genuinely shared lives in BLOCKS and is available to both. */
+function buildGuide(p,host){
+  const head=el("header","ghead");
+  const w=el("div","wrap");
+  w.innerHTML=
+    `<a class="pback" href="#/projects">‹ All projects</a>
+     <div class="ghGrid">
+       <div>
+         <div class="eyebrow">${esc(p.eyebrow||"Project")}</div>
+         <h1>${esc(p.name)}</h1>
+         <p class="glede">${p.summary||""}</p>
+         <div class="gstats">
+           <div class="gstat"><b data-g="done">0</b><span>Steps done</span></div>
+           <div class="gstat"><b data-g="kit">0</b><span>Kit ready</span></div>
+           <div class="gstat"><b class="small" data-g="verdict">Not judged</b><span>Exchanger</span></div>
+         </div>
+       </div>
+       <div class="ggaugeWrap">
+         <svg class="ggauge" viewBox="0 0 300 210" role="img" aria-labelledby="ggTitle">
+           <title id="ggTitle">Progress gauge shaped as the gravity furnace in section</title>
+           <defs><clipPath id="ggClip"><rect x="92" y="42" width="116" height="140"/></clipPath></defs>
+           <path class="gg-h" d="M138 42 L138 16 M162 42 L162 16"/>
+           <path class="gg-h" d="M132 16 L168 16"/>
+           <g clip-path="url(#ggClip)"><rect class="gg-fill" data-g="fill" x="92" y="182" width="116" height="0"/></g>
+           <rect class="gg-cab" x="92" y="42" width="116" height="140"/>
+           <path class="gg-h thin" d="M112 62 L112 118 Q112 128 124 128 Q136 128 136 118 L136 62"/>
+           <path class="gg-h thin" d="M164 62 L164 118 Q164 128 176 128 Q188 128 188 118 L188 62"/>
+           <rect class="gg-h" x="140" y="66" width="20" height="26" rx="2" fill="none" stroke-dasharray="3 3"/>
+           <path class="gg-h" d="M104 146 L196 146 L196 172 L104 172 Z"/>
+           <circle class="gg-burn" cx="128" cy="159" r="4"/>
+           <circle class="gg-burn" cx="150" cy="159" r="4"/>
+           <circle class="gg-burn" cx="172" cy="159" r="4"/>
+           <path class="gg-grill" d="M104 52 L196 52 M104 58 L196 58"/>
+           <path class="gg-h" d="M104 182 L104 194 M196 182 L196 194"/>
+         </svg>
+       </div>
+     </div>`;
+  const chip=el("div","sync",'<i></i><span>Synced</span>');
+  chip.dataset.st="ok";
+  w.querySelector(".ghGrid > div").appendChild(chip);
+  head.appendChild(w);
+  host.appendChild(head);
+
+  /* Phase nav. Sticky, horizontally scrollable, and the progress meter lives
+     in it — on a phone this bar is the only thing on screen that says how far
+     through you are once the hero has scrolled away. */
+  const nav=el("nav","gband");
+  nav.setAttribute("aria-label","Phases");
+  const navIn=el("div","gbandIn");
+  nav.appendChild(navIn);
+  host.appendChild(nav);
+
+  if(p.standing){
+    const r=el("div","grule");
+    r.innerHTML=`<div class="wrap"><span class="gruleTag">${esc(p.standing.tag||"Standing rule")}</span><p>${p.standing.body||""}</p></div>`;
+    host.appendChild(r);
+  }
+
+  const body=el("div","gbody");
+  p.sections.forEach((sec,i)=>{
+    const s=el("section","gphase"+(sec.branch?" branch":""));
+    s.id="gph-"+sec.id;
+    s.dataset.ph=i;
+
+    const head2=el("div","gphHead");
+    head2.setAttribute("role","button");
+    head2.setAttribute("tabindex","0");
+    head2.setAttribute("aria-expanded","true");
+    head2.innerHTML=
+      `<span class="gphNum">${esc(sec.num||String(i+1).padStart(2,"0"))}</span>
+       <div class="gphTitle"><h2>${esc(sec.title)}</h2>${sec.sub?`<div class="gphSub">${esc(sec.sub)}</div>`:""}</div>
+       <span class="gphCount" data-count></span><span class="chev">▾</span>`;
+    const toggle=()=>{
+      const closed=s.classList.toggle("closed");
+      head2.setAttribute("aria-expanded",closed?"false":"true");
+    };
+    head2.onclick=toggle;
+    head2.onkeydown=e=>{
+      if(e.key===" "||e.key==="Enter"){e.preventDefault();toggle();}
+    };
+    s.appendChild(head2);
+
+    const bd=el("div","gphBody");
+    if(sec.branch)bd.appendChild(el("div","gbranchFlag","Branch · inactive until the gate is set"));
+    if(sec.intro)bd.appendChild(el("p","gphIntro",sec.intro));
+    (sec.blocks||[]).forEach(b=>{
+      const fn=BLOCKS[b.kind];
+      if(!fn){console.warn("unknown block kind",b.kind);return;}
+      const node=fn(p,b,0);
+      if(node)bd.appendChild(node);
+    });
+    s.appendChild(bd);
+    body.appendChild(s);
+
+    const pill=el("button","gpill",esc((sec.num?sec.num+" · ":"")+sec.title));
+    pill.type="button";
+    pill.dataset.ph=i;
+    pill.onclick=()=>{
+      s.classList.remove("closed");
+      head2.setAttribute("aria-expanded","true");
+      s.scrollIntoView({behavior:MOTION?"smooth":"auto",block:"start"});
+    };
+    navIn.appendChild(pill);
+  });
+
+  const meter=el("div","gmeter");
+  meter.innerHTML='<div class="gmeterBar"><i data-g="meter"></i></div><span data-g="pct">0%</span>';
+  navIn.appendChild(meter);
+
+  host.appendChild(body);
+
+  /* Everything but the first phase starts collapsed — 35 steps and a reading
+     list is a lot of page to scroll past on a phone. */
+  body.querySelectorAll(".gphase").forEach((sec,i)=>{
+    if(i>0){sec.classList.add("closed");sec.querySelector(".gphHead").setAttribute("aria-expanded","false");}
+  });
+
+  syncStatus();
+  paintProject();
+}
+
+/* Completion excludes the branch that does not apply. The verdict decides
+   which one that is, and nothing else records it — a stored "active branch"
+   flag would be a second fact that could disagree with the first.
+   Ticks on the dormant branch are kept, just not counted, so changing the
+   verdict and changing it back costs nothing. */
+function paintGuide(p,host){
+  const verdict=gval(p.slug,"verdict");
+  let done=0,total=0,kitDone=0,kitTotal=0;
+
+  host.querySelectorAll(".gphase[data-ph]").forEach(sec=>{
+    const def=p.sections[+sec.dataset.ph];
+    let d=0,t=0;
+    sec.querySelectorAll(".gstep").forEach(row=>{
+      t++;
+      if(ticked(p.slug,row.dataset.item))d++;
+    });
+
+    const live=!def.branch||(!!verdict&&(def.live||[]).includes(verdict));
+    if(def.branch){
+      sec.dataset.live=live?"1":"0";
+      const flag=sec.querySelector(".gbranchFlag");
+      if(flag)flag.textContent=live
+        ? "Branch · active — this is your path"
+        : (verdict?"Branch · not your path":"Branch · inactive until the gate is set");
+    }
+    if(live){done+=d;total+=t;}
+
+    const c=sec.querySelector("[data-count]");
+    if(c)c.textContent=t?(d+"/"+t):"";
+
+    let kd=0,kt=0;
+    sec.querySelectorAll(".gmat").forEach(row=>{
+      kt++;
+      if(ticked(p.slug,row.dataset.item))kd++;
+    });
+    if(kt){kitDone+=kd;kitTotal+=kt;if(c)c.textContent=kd+"/"+kt;}
+
+    const pill=host.querySelector('.gpill[data-ph="'+sec.dataset.ph+'"]');
+    if(pill)pill.dataset.done=((t&&d===t)||(kt&&kd===kt))?"1":"0";
+  });
+
+  const frac=total?done/total:0;
+  const pct=Math.round(frac*100);
+  const set=(k,v)=>{const n=host.querySelector('[data-g="'+k+'"]');if(n)n.textContent=v;};
+  set("done",done+"/"+total);
+  set("kit",kitDone+"/"+kitTotal);
+  set("pct",pct+"%");
+  const bar=host.querySelector('[data-g="meter"]');
+  if(bar)bar.style.width=pct+"%";
+  const fill=host.querySelector('[data-g="fill"]');
+  if(fill){const h=140*frac;fill.setAttribute("y",182-h);fill.setAttribute("height",h);}
+
+  /* The gate: selected option, the verdict prose, and the hero summary. */
+  host.querySelectorAll(".gate").forEach(g=>{
+    const key=g.dataset.key;
+    const cur=gval(p.slug,key);
+    const def=findBlock(p,"verdict",key);
+    g.querySelectorAll(".gateOpt").forEach(btn=>{
+      const on=btn.dataset.k===cur;
+      btn.classList.toggle("on",on);
+      btn.setAttribute("aria-checked",on?"true":"false");
+    });
+    const v=g.querySelector(".gateVerdict");
+    const opt=def&&(def.options||[]).find(o=>o.k===cur);
+    if(v){v.hidden=!opt;if(opt)v.innerHTML=opt.body;}
+    if(key==="verdict")set("verdict",opt?opt.short:"Not judged");
+  });
+}
+
+function findBlock(p,kind,stateKey){
+  let hit=null;
+  (p.sections||[]).forEach(s=>(s.blocks||[]).forEach(b=>{
+    if(b.kind===kind&&(!stateKey||b.stateKey===stateKey))hit=b;
+  }));
+  return hit;
+}
+
 /* Called on every poll. Only touches state, never rebuilds — a rebuild would
    drop focus and thrash the DOM every five seconds. */
 function paintProject(){
@@ -1800,6 +2385,11 @@ function paintProject(){
     const on=!!s.checked;
     const cb=row.querySelector(".pcb");
     if(cb&&cb.checked!==on)cb.checked=on;
+    /* Guide rows use <button role="checkbox">, so the accessible state is an
+       attribute rather than a property. Set here, next to the visual state,
+       so the two cannot drift apart. */
+    const gcb=row.querySelector(".gcb");
+    if(gcb)gcb.setAttribute("aria-checked",on?"true":"false");
     row.dataset.done=on?"1":"0";
     const who=row.querySelector(".pwho");
     if(!who)return;
@@ -1808,6 +2398,8 @@ function paintProject(){
       who.innerHTML=(s.updatedBy?"<b>"+esc(s.updatedBy)+"</b> · ":"")+ago(s.updatedAt);
     }else who.hidden=true;
   });
+
+  if(p.guide){paintGuide(p,host);return;}
 
   partsBlocks(p).forEach((b,idx)=>{
     const scope=host.querySelector('.pblock[data-parts="'+idx+'"]');
@@ -1864,9 +2456,35 @@ function partCounts(p){
   return {total,done,left};
 }
 
+/* A guide page's index card counts steps, not parts. The dormant branch is
+   excluded here for the same reason it is on the page itself, so the card and
+   the meter always agree. */
+function guideCounts(p){
+  const verdict=gval(p.slug,"verdict");
+  let total=0,done=0,kit=0,kitDone=0;
+  (p.sections||[]).forEach(sec=>{
+    const live=!sec.branch||(!!verdict&&(sec.live||[]).includes(verdict));
+    (sec.blocks||[]).forEach(b=>{
+      if(b.kind==="steps"&&live)(b.items||[]).forEach(it=>{
+        total++;if(ticked(p.slug,"step."+it.id))done++;
+      });
+      if(b.kind==="kit")(b.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{
+        kit++;if(ticked(p.slug,"kit."+it.id))kitDone++;
+      }));
+    });
+  });
+  return {total,done,kit,kitDone,verdict};
+}
+
 /* Gating status is already in the data: the warn chip if the project has one,
    otherwise the count of open decisions. No extra field to keep truthful. */
 function gatingLine(p){
+  if(p.guide){
+    const b=findBlock(p,"verdict","verdict");
+    const v=gval(p.slug,"verdict");
+    const opt=b&&(b.options||[]).find(o=>o.k===v);
+    return opt?"Exchanger: "+opt.short:"Exchanger not judged";
+  }
   const warn=(p.chips||[]).find(c=>c.tone==="warn");
   if(warn)return warn.label.replace(/&nbsp;/g," ");
   let n=0;
@@ -1892,13 +2510,16 @@ function renderIndex(){
     if(planned){
       meta.appendChild(el("span",null,"Not written yet"));
     }else{
-      const c=partCounts(p);
+      const c=p.guide?guideCounts(p):partCounts(p);
       const bar=el("div","pcardBar");
       const fill=document.createElement("i");
       fill.style.width=(c.total?c.done/c.total*100:0)+"%";
       bar.appendChild(fill);
-      meta.append(bar,el("span",null,c.done+" of "+c.total+" in hand"));
-      if(c.left)meta.appendChild(el("span",null,"· "+money(c.left)+" to buy"));
+      meta.append(bar,el("span",null,p.guide
+        ? c.done+" of "+c.total+" steps done"
+        : c.done+" of "+c.total+" in hand"));
+      if(p.guide&&c.kit)meta.appendChild(el("span",null,"· kit "+c.kitDone+"/"+c.kit));
+      if(!p.guide&&c.left)meta.appendChild(el("span",null,"· "+money(c.left)+" to buy"));
       const g=gatingLine(p);
       if(g)meta.appendChild(el("span","pcardGate",g));
     }

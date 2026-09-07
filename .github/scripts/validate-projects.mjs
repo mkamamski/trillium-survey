@@ -31,7 +31,14 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 const FILE = "projects.js";
-const KINDS = ["diagram", "notes", "parts", "sequence", "gates", "refs"];
+const KINDS = ["diagram", "notes", "parts", "sequence", "gates", "refs",
+               /* guide pages */ "steps", "kit", "table", "verdict", "seq"];
+
+/* Guide pages carry page-level state in `project_state` rather than
+   `project_items`. A state key is a primary-key column there for the same
+   reason an item id is one here, so it gets the same treatment: kebab-case,
+   and every value the page can write is declared up front. */
+const STATE_KEYS = new Set();
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const errors = [];
@@ -80,7 +87,7 @@ function checkPart(where, it, seen) {
     err(`${where}.${it.id}`, '`confidence` must be "quoted" or "est"');
 }
 
-function checkBlock(where, b, seen) {
+function checkBlock(where, b, seen, projectSlug) {
   if (!KINDS.includes(b.kind))
     return err(where, `unknown block kind ${JSON.stringify(b.kind)} — expected one of ${KINDS.join(", ")}. An unknown kind renders as nothing.`);
 
@@ -135,6 +142,77 @@ function checkBlock(where, b, seen) {
     });
   }
 
+  /* Guide steps and kit lines land in the same table as `sequence` steps and
+     `parts`, so they get the same id rules. This is the check that stops a
+     reworded label from orphaning a tick. */
+  if (b.kind === "steps") {
+    if (!Array.isArray(b.items) || !b.items.length) return err(where, "steps block has no items");
+    b.items.forEach((s, i) => {
+      const w = `${where}.steps[${i}]`;
+      if (!str(s.id)) return err(w, "step missing `id`");
+      if (!SLUG.test(s.id)) err(w, "step `id` must be lower-case kebab-case");
+      if (seen.has(`step.${s.id}`)) err(w, `duplicate step id "${s.id}" in this project`);
+      seen.add(`step.${s.id}`);
+      if (!str(s.title)) err(w, "step missing `title`");
+    });
+  }
+
+  if (b.kind === "kit") {
+    if (!Array.isArray(b.groups) || !b.groups.length) return err(where, "kit block has no groups");
+    b.groups.forEach((g, i) => {
+      const w = `${where}.groups[${i}]`;
+      if (!str(g.title)) err(w, "kit group missing `title`");
+      if (!Array.isArray(g.items) || !g.items.length) return err(w, "kit group has no items");
+      g.items.forEach((it, j) => {
+        const wi = `${w}.items[${j}]`;
+        if (!str(it.id)) return err(wi, "kit item missing `id`");
+        if (!SLUG.test(it.id)) err(wi, "kit `id` must be lower-case kebab-case");
+        if (seen.has(`kit.${it.id}`)) err(wi, `duplicate kit id "${it.id}" in this project`);
+        seen.add(`kit.${it.id}`);
+        if (!str(it.name)) err(wi, "kit item missing `name`");
+        /* No price, no confidence: a guide page has no purchase decisions in
+           it, and adding them here is how cost creeps back onto a page whose
+           whole point is deciding before spending. */
+        if (it.price !== undefined) err(wi, "kit items carry no `price` — that belongs on a `parts` block");
+      });
+    });
+  }
+
+  if (b.kind === "table") {
+    if (!Array.isArray(b.head) || !b.head.length) return err(where, "table has no `head`");
+    if (!Array.isArray(b.rows) || !b.rows.length) return err(where, "table has no `rows`");
+    b.rows.forEach((r, i) => {
+      if (!Array.isArray(r) || r.length !== b.head.length)
+        err(`${where}.rows[${i}]`, `row has ${Array.isArray(r) ? r.length : "?"} cells, head has ${b.head.length}`);
+    });
+  }
+
+  if (b.kind === "verdict") {
+    if (!str(b.stateKey)) return err(where, "verdict block missing `stateKey`");
+    if (!SLUG.test(b.stateKey)) err(where, "`stateKey` must be lower-case kebab-case");
+    if (STATE_KEYS.has(`${projectSlug}/${b.stateKey}`))
+      err(where, `duplicate stateKey "${b.stateKey}" in this project`);
+    STATE_KEYS.add(`${projectSlug}/${b.stateKey}`);
+    if (!str(b.title)) err(where, "verdict block missing `title`");
+    if (!Array.isArray(b.options) || b.options.length < 2)
+      return err(where, "verdict block needs at least two options");
+    const ks = new Set();
+    b.options.forEach((o, i) => {
+      const w = `${where}.options[${i}]`;
+      if (!str(o.k)) return err(w, "option missing `k`");
+      if (!SLUG.test(o.k)) err(w, "option `k` must be lower-case kebab-case");
+      if (ks.has(o.k)) err(w, `duplicate option key "${o.k}"`);
+      ks.add(o.k);
+      if (!str(o.label)) err(w, "option missing `label`");
+      if (!str(o.short)) err(w, "option missing `short` — the hero stat has no room for the full label");
+      if (!str(o.body)) err(w, "option missing `body`");
+    });
+  }
+
+  if (b.kind === "seq") {
+    if (!str(b.text)) err(where, "seq block needs `text`");
+  }
+
   if (b.kind === "gates") {
     if (!Array.isArray(b.items) || !b.items.length) return err(where, "gates block has no items");
     b.items.forEach((g, i) => {
@@ -186,9 +264,36 @@ for (const p of PROJECTS) {
     const w = `${where}.sections[${i}]`;
     if (!str(s.id)) err(w, "section missing `id`");
     if (!str(s.title)) err(w, "section missing `title`");
+    if (p.guide && !str(s.num)) err(w, "guide section missing `num` — guide phases are numbered by hand (00, K, R), not by position");
+    if (s.branch && (!Array.isArray(s.live) || !s.live.length))
+      err(w, "`branch: true` needs a non-empty `live` — a branch with no gate values can never activate");
+    if (!s.branch && s.live) err(w, "`live` without `branch: true` does nothing");
     if (!Array.isArray(s.blocks) || !s.blocks.length) return err(w, "section has no blocks");
-    s.blocks.forEach((b, j) => checkBlock(`${where}.${s.id ?? i}.blocks[${j}]`, b, seen));
+    s.blocks.forEach((b, j) => checkBlock(`${where}.${s.id ?? i}.blocks[${j}]`, b, seen, p.slug));
   });
+
+  /* The branch gate, checked end to end. A `live` value that no verdict option
+     offers is a branch that can never activate, and nothing at runtime would
+     ever say so — the phase would just sit dimmed forever. */
+  if (p.guide) {
+    const gate = (p.sections ?? []).flatMap(s => s.blocks ?? []).find(b => b.kind === "verdict");
+    const branches = (p.sections ?? []).filter(s => s.branch);
+    if (branches.length && !gate)
+      err(where, "has branch phases but no `verdict` block to gate them on");
+    if (gate && Array.isArray(gate.options)) {
+      const keys = new Set(gate.options.map(o => o.k));
+      branches.forEach(s => (s.live ?? []).forEach(v => {
+        if (!keys.has(v))
+          err(`${where}.${s.id}`, `\`live\` names "${v}", which is not one of the verdict options (${[...keys].join(", ")}) — this branch can never activate`);
+      }));
+      /* Every verdict value should send you somewhere, or the page quietly
+         dead-ends on an answer it accepted. */
+      const covered = new Set(branches.flatMap(s => s.live ?? []));
+      [...keys].filter(k => !covered.has(k)).forEach(k =>
+        err(where, `verdict option "${k}" activates no branch — every answer needs a path`));
+    }
+  }
+
   idsByProject.set(p.slug, seen);
 }
 

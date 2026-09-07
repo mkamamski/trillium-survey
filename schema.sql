@@ -73,12 +73,44 @@ create table if not exists public.project_items (
 
 create index if not exists project_items_touched on public.project_items (survey_slug, updated_at desc);
 
+-- Guide-style project pages (the furnace inspection, and the planned power,
+-- refrigerator, floor, belly band and exterior pages) tick their steps and kit
+-- lines through `project_items` above — one boolean per item is exactly what
+-- that table already is, so they need nothing new for it.
+--
+-- What they do need is somewhere for a scalar that belongs to the PAGE rather
+-- than to any one item: the furnace guide's heat-exchanger verdict decides
+-- which of two mutually exclusive phases applies, and it is not a property of
+-- a step. That is this table.
+--
+-- Deliberately a `state_key` and not a `verdict` column. Every remaining
+-- planned page will want its own page-level choice or two, and a column per
+-- page would mean a migration per page.
+create table if not exists public.project_state (
+  survey_slug   text not null references public.surveys(slug) on delete cascade,
+  project_slug  text not null,
+  state_key     text not null,
+  -- Untyped on purpose. Which values are legal is a property of the page, and
+  -- the page lives in projects.js. A check constraint here would mean a
+  -- migration every time a page adds a choice, and would be enforcing it in
+  -- the wrong place. Bounded in length so this cannot quietly become a
+  -- document store.
+  state_value   text not null default '' check (length(state_value) <= 200),
+  updated_by    text not null default '',
+  updated_at    timestamptz not null default now(),
+  primary key (survey_slug, project_slug, state_key)
+);
+
+create index if not exists project_state_touched
+  on public.project_state (survey_slug, updated_at desc);
+
 -- ─────────────────────────── lockdown ───────────────────────────
 
 alter table public.surveys enable row level security;
 alter table public.records enable row level security;
 alter table public.photos  enable row level security;
 alter table public.project_items enable row level security;
+alter table public.project_state enable row level security;
 
 -- No policies are created. With RLS enabled and zero policies, PostgreSQL denies
 -- every row to any non-owner role. Revoke the table grants too, belt and braces.
@@ -86,6 +118,7 @@ revoke all on public.surveys from anon, authenticated;
 revoke all on public.records from anon, authenticated;
 revoke all on public.photos  from anon, authenticated;
 revoke all on public.project_items from anon, authenticated;
+revoke all on public.project_state from anon, authenticated;
 
 -- ─────────────────────────── gate ───────────────────────────
 
@@ -128,7 +161,8 @@ end $$;
 -- Cheap "has anything changed?" probe. The client polls this every few seconds
 -- and only pulls the full record set when the signature moves.
 --
--- The project counters ride along here rather than getting their own poller.
+-- The project counters — item ticks and page state both — ride along here
+-- rather than getting their own poller.
 -- Every RPC runs assert_pass, and assert_pass is a bcrypt compare — a second
 -- 5s timer would double the bcrypt work server-side just to ask "anything new?".
 -- Two extra subqueries on one round trip is much cheaper than a second call.
@@ -147,7 +181,10 @@ begin
            'photos',(select count(*) from public.photos where survey_slug = p_slug),
            'pn',    (select count(*) from public.project_items where survey_slug = p_slug),
            'plast', (select coalesce(max(extract(epoch from updated_at) * 1000), 0)
-                       from public.project_items where survey_slug = p_slug)
+                       from public.project_items where survey_slug = p_slug),
+           'sn',    (select count(*) from public.project_state where survey_slug = p_slug),
+           'slast', (select coalesce(max(extract(epoch from updated_at) * 1000), 0)
+                       from public.project_state where survey_slug = p_slug)
          )
     into v
     from public.records where survey_slug = p_slug;
@@ -312,6 +349,72 @@ begin
   return json_build_object('ok', true);
 end $$;
 
+-- ─────────────────────────── guide page state ───────────────────────────
+
+-- Page-level scalars, keyed project -> key. Same nested json_object_agg shape
+-- as project_items_all so the client applies both the same way.
+create or replace function public.project_state_all(p_slug text, p_pass text)
+returns json
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare v json;
+begin
+  perform public.assert_pass(p_slug, p_pass);
+  select coalesce(json_object_agg(project_slug, keys), '{}'::json)
+    into v
+    from (
+      select project_slug,
+             json_object_agg(
+               state_key,
+               json_build_object(
+                 'value',     state_value,
+                 'updatedBy', updated_by,
+                 'updatedAt', extract(epoch from updated_at) * 1000
+               )) as keys
+        from public.project_state
+       where survey_slug = p_slug
+       group by project_slug
+    ) g;
+  return v;
+end $$;
+
+-- Single-row upsert on the composite key, resolved server-side — the same
+-- shape and the same newest-wins rule as survey_upsert and project_set.
+--
+-- Note what is NOT here: the client never reads the page's state, edits it and
+-- writes it back. It sends one key and one value. The survey's read-modify-
+-- write race cannot arise on this path by construction, which is the whole
+-- reason this is an RPC rather than a table write.
+create or replace function public.project_state_set(
+  p_slug text, p_pass text, p_project text, p_key text,
+  p_value text, p_by text
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  perform public.assert_pass(p_slug, p_pass);
+
+  insert into public.project_state as t
+    (survey_slug, project_slug, state_key, state_value, updated_by, updated_at)
+  values
+    (p_slug, p_project, p_key, coalesce(p_value, ''), coalesce(p_by, ''), now())
+  on conflict (survey_slug, project_slug, state_key) do update
+    set state_value = excluded.state_value,
+        updated_by  = excluded.updated_by,
+        updated_at  = excluded.updated_at
+    where excluded.updated_at >= t.updated_at;
+
+  return json_build_object('ok', true);
+end $$;
+
+-- There is deliberately no project_state_clear. Nothing on this path destroys
+-- a row, and project_clear stays scoped to project_items.
+
 -- ─────────────────────────── CI ───────────────────────────
 
 -- Continuous integration needs to answer one question before a project page is
@@ -385,7 +488,7 @@ end $$;
 create table if not exists public.record_history (
   id          bigserial primary key,
   survey_slug text not null,
-  source      text not null check (source in ('records','project_items')),
+  source      text not null check (source in ('records','project_items','project_state')),
   item_key    text not null,   -- checkpoint id, or 'project/item' for a tick
   op          text not null check (op in ('update','delete')),
   before      jsonb not null,
@@ -451,12 +554,58 @@ begin
   return null;
 end $$;
 
+create or replace function public.log_project_state_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'UPDATE' and old.state_value is not distinct from new.state_value then
+    return null;
+  end if;
+
+  insert into public.record_history (survey_slug, source, item_key, op, before)
+  values (old.survey_slug, 'project_state',
+          old.project_slug || '/' || old.state_key, lower(tg_op),
+          jsonb_build_object(
+            'value',     old.state_value,
+            'updatedBy', old.updated_by,
+            'updatedAt', extract(epoch from old.updated_at) * 1000));
+  return null;
+end $$;
+
+-- `source` gained a third value. An existing database still carries the
+-- two-value check from before this section, and a check constraint cannot be
+-- widened in place — so the old one is found by its DEFINITION and dropped.
+-- Guessing its auto-generated name instead would leave it in place, still
+-- rejecting 'project_state', while this file reported success.
+do $$
+declare c text;
+begin
+  for c in
+    select con.conname
+      from pg_constraint con
+      join pg_class rel on rel.oid = con.conrelid
+      join pg_namespace n on n.oid = rel.relnamespace
+     where n.nspname = 'public' and rel.relname = 'record_history'
+       and con.contype = 'c'
+       and pg_get_constraintdef(con.oid) like '%project_items%'
+       and pg_get_constraintdef(con.oid) not like '%project_state%'
+  loop
+    execute format('alter table public.record_history drop constraint %I', c);
+    execute 'alter table public.record_history add constraint record_history_source_check
+             check (source in (''records'',''project_items'',''project_state''))';
+  end loop;
+end $$;
+
 -- Trigger functions are never called directly. CREATE FUNCTION grants EXECUTE to
 -- PUBLIC by default, so like assert_pass they have to be revoked explicitly —
 -- naming `public`, not just anon. (Missed on the first pass; caught by auditing
 -- the live database against this file.)
 revoke execute on function public.log_record_history()  from public, anon, authenticated;
 revoke execute on function public.log_project_history() from public, anon, authenticated;
+revoke execute on function public.log_project_state_history() from public, anon, authenticated;
 
 drop trigger if exists records_history on public.records;
 create trigger records_history
@@ -467,6 +616,11 @@ drop trigger if exists project_items_history on public.project_items;
 create trigger project_items_history
   after update or delete on public.project_items
   for each row execute function public.log_project_history();
+
+drop trigger if exists project_state_history on public.project_state;
+create trigger project_state_history
+  after update or delete on public.project_state
+  for each row execute function public.log_project_state_history();
 
 -- Read it back. Pass p_key to see one checkpoint's or one item's history,
 -- omit it for everything recent across the survey.
@@ -594,6 +748,8 @@ grant execute on function public.survey_photo_del(text, text, uuid)             
 grant execute on function public.project_items_all(text, text)                      to anon, authenticated;
 grant execute on function public.project_set(text, text, text, text, boolean, text) to anon, authenticated;
 grant execute on function public.project_item_ids(text, text)                       to anon, authenticated;
+grant execute on function public.project_state_all(text, text)                      to anon, authenticated;
+grant execute on function public.project_state_set(text, text, text, text, text, text) to anon, authenticated;
 
 -- ─────────────────────────── create the survey ───────────────────────────
 -- CHANGE THE PASSPHRASE on the next line before running this file.
@@ -611,9 +767,9 @@ on conflict (slug) do nothing;
 -- ─────────────────────────── audit ───────────────────────────
 -- Run this against the live database to check it still matches this file.
 -- Expect: only passphrase-gated entry points callable by anon; assert_pass,
--- assert_pass_or_ci, survey_clear, project_clear and both log_* functions NOT
--- callable; every table RLS-on with zero policies and no anon select; both
--- history triggers present.
+-- assert_pass_or_ci, survey_clear, project_clear and all three log_* functions
+-- NOT callable; every table RLS-on with zero policies and no anon select; all
+-- three history triggers present.
 --
 --   with fns as (
 --     select p.proname, has_function_privilege('anon', p.oid, 'execute') as anon_exec

@@ -85,7 +85,8 @@ defined = set(re.findall(r"create or replace function public\.(\w+)\(", sch))
 granted = set(re.findall(r"grant execute on function public\.(\w+)\(", sch))
 revoked = set(re.findall(r"revoke (?:all|execute) on function public\.(\w+)\(", sch))
 check("app", "every granted function is defined", granted <= defined, str(sorted(granted - defined)))
-for fn in ["survey_clear", "project_clear", "assert_pass", "log_record_history", "log_project_history"]:
+for fn in ["survey_clear", "project_clear", "assert_pass", "log_record_history", "log_project_history",
+           "log_project_state_history"]:
     check("app", f"{fn} revoked, never granted", fn in revoked and fn not in granted)
     check("app", f"{fn} revoke names the `public` role",
           bool(re.search(rf"revoke (?:all|execute) on function public\.{fn}\([^)]*\)\s*from public", sch)))

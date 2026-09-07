@@ -17,7 +17,7 @@ index.html         the whole app — both areas, one router
 checkpoints.json   the 84 checkpoints — the durable asset, single source of truth
 projects.js        the project pages, same role for the other area
 config.js          Supabase URL + publishable key (safe to commit)
-schema.sql         the tables and the twelve passphrase-gated functions
+schema.sql         the tables and the fourteen passphrase-gated functions
 ```
 
 ## Setup
@@ -78,7 +78,7 @@ Instead:
 - Every table has **RLS enabled with zero policies**. Postgres denies every row
   to the `anon` role. Holding the anon key gets you nothing at all.
 - All access goes through `SECURITY DEFINER` functions that call `assert_pass()`
-  first, comparing a bcrypt hash. Only those twelve functions are granted to `anon`.
+  first, comparing a bcrypt hash. Only those fourteen functions are granted to `anon`.
 - A wrong guess costs a bcrypt round plus a forced 0.5s sleep, which makes online
   guessing impractical without a rate-limit table.
 
@@ -127,7 +127,42 @@ filling in a fixed template:
 | `parts` | grouped shopping list, prices, `quoted`/`est` confidence, tallies |
 | `sequence` | numbered order of work |
 | `gates` | open decisions and what each is waiting on |
-| `refs` | external links with a blurb and a source label |
+| `refs` | external links with a blurb and a source label, optionally grouped |
+| `steps` | unnumbered checkable steps — guide pages |
+| `kit` | grouped checkable tools and materials, no prices — guide pages |
+| `table` | a captioned table |
+| `verdict` | the decision gate: one page-level choice — guide pages |
+| `seq` | a preformatted flow diagram |
+
+### Guide pages
+
+A project with `guide: true` renders differently: numbered phases you work
+through and tick off, a progress hero, a sticky phase nav, and collapsible
+sections. It is the same data path — `sections[] → blocks[]`, the same
+`project_items` rows, the same sync chip — with a different spine. The furnace
+page is the first one; power, refrigerator, floor, belly band and exterior are
+expected to follow.
+
+Two things a guide page has that a build page doesn't:
+
+**A page-level decision.** The furnace's heat exchanger verdict is not a
+property of any step, so it lives in `project_state` (one row, keyed
+`(survey_slug, project_slug, state_key)`) rather than `project_items`. A
+`verdict` block declares the key and its options. Guide pages carry **no cost
+fields** — the point of one is deciding before spending, and the validator
+rejects a `price` on a kit item to keep it that way.
+
+**Branches.** A phase with `branch: true` lists in `live` the verdict values
+that activate it. Exactly one branch applies; the others dim and drop out of
+the completion percentage. **Branch state is derived from the verdict and never
+stored** — a saved "which branch is active" flag would be a second fact that
+could disagree with the first. Ticks on a dormant branch are kept, just not
+counted, so changing the verdict and changing it back costs nothing.
+
+The validator checks the gate end to end: a `live` value no verdict option
+offers is a branch that can never activate, and a verdict option that activates
+no branch is an answer the page dead-ends on. Both fail the build rather than
+sitting there looking fine.
 
 There is deliberately **no generic HTML block**. Every part of the water page
 fits the six kinds above; adding an escape hatch now would guarantee it gets
@@ -244,6 +279,13 @@ Project state works the same way, one row per tickable item keyed
 `(survey_slug, project_slug, item_id)`, merged by `project_set`. A checkbox is a
 single field, so it can't even have the field-level version of this problem.
 
+A guide page's page-level state — currently just the furnace verdict — is one
+row keyed `(survey_slug, project_slug, state_key)`, merged by
+`project_state_set`. Same rule again: the client sends one key and one value and
+never reads-modifies-writes, so the survey's same-row hazard cannot arise here
+either. Its counters ride along in `survey_rev` rather than getting a second
+poller, for the same bcrypt reason the project counters do.
+
 Clients poll `survey_rev` every 5s — a tiny call returning a count and a max
 timestamp — and only pull the full record set when that signature moves. The
 project counters ride along in that same call rather than getting their own
@@ -353,16 +395,22 @@ type Record = {
   updatedAt: number;   // epoch ms, set by Postgres
 };
 
-type ProjectItem = {           // one per ticked part or step
+type ProjectItem = {           // one per ticked part, step or kit line
   checked: boolean;
+  updatedBy: string;
+  updatedAt: number;
+};
+
+type PageState = {             // one per page-level choice on a guide page
+  value: string;               // '' means unset; the page owns the vocabulary
   updatedBy: string;
   updatedAt: number;
 };
 ```
 
 The same rule applies on the projects side, for the same reason: part and step
-`id`s are what ticks are keyed to. `projects.js` namespaces them `part.<id>` and
-`step.<id>` so both can share one table.
+`id`s are what ticks are keyed to. `projects.js` namespaces them `part.<id>`,
+`step.<id>` and `kit.<id>` so they can all share one table.
 
 ## History
 
